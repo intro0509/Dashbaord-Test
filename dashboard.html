@@ -1117,32 +1117,8 @@ function animateBars() {
   }, 100);
 }
 
-// ============ ROSTER (교원 명부) ============
-function getRoster() {
-  const base = DB.summary[currentYear];
-  if (!base) return [];
-  const medKey = currentMedical === 'include' ? 'include' : 'exclude';
-  const yearData = base[medKey] || base;
-  const f = activeFilters;
-  const allDefault = Object.values(f).every(v => v === '전체');
-
-  if (allDefault) return yearData.roster || yearData.base?.roster || [];
-
-  let filterKey = null;
-  if (f.track !== '전체') {
-    filterKey = f.track === '비정년트랙' && f.non_tenure !== '전체'
-      ? `track:비정년트랙|non_tenure:${f.non_tenure}`
-      : `track:${f.track}`;
-  } else if (f.rank !== '전체') filterKey = `rank:${f.rank}`;
-  else if (f.gender !== '전체') filterKey = `gender:${f.gender}`;
-  else if (f.age !== '전체') filterKey = `age:${f.age}`;
-  else if (f.tenure !== '전체') filterKey = `tenure:${f.tenure}`;
-
-  if (filterKey && yearData.filters?.[filterKey]) {
-    return yearData.filters[filterKey].roster || [];
-  }
-  return yearData.roster || [];
-}
+// ============ ROSTER (교원 명부 - 학년도별 파일 lazy load) ============
+let rosterCache = {};
 
 function getFilterLabel() {
   const f = activeFilters;
@@ -1156,10 +1132,62 @@ function getFilterLabel() {
   return tags.length ? tags.join(' · ') : '전체';
 }
 
-function openRosterTab() {
-  const roster = getRoster();
+// 필터 키 반환
+function getFilterKey() {
+  const f = activeFilters;
+  if (f.track !== '전체') {
+    return f.track === '비정년트랙' && f.non_tenure !== '전체'
+      ? `track:비정년트랙|non_tenure:${f.non_tenure}`
+      : `track:${f.track}`;
+  }
+  if (f.rank !== '전체') return `rank:${f.rank}`;
+  if (f.gender !== '전체') return `gender:${f.gender}`;
+  if (f.age !== '전체') return `age:${f.age}`;
+  if (f.tenure !== '전체') return `tenure:${f.tenure}`;
+  return null;
+}
+
+// 버튼 로딩 상태
+function setRosterBtnLoading(loading) {
+  document.querySelectorAll('[data-roster-btn]').forEach(b => {
+    b.textContent = loading ? '⏳ 로딩 중...' : b.dataset.rosterLabel;
+    b.disabled = loading;
+  });
+}
+
+// 해당 학년도 roster 파일 로딩 (캐시 활용)
+async function loadRoster() {
+  if (rosterCache[currentYear]) return rosterCache[currentYear];
+  setRosterBtnLoading(true);
+  try {
+    const res = await fetch(`dashboard_roster_${currentYear}.json?t=${Date.now()}`);
+    if (!res.ok) throw new Error(`dashboard_roster_${currentYear}.json 파일 없음`);
+    const data = await res.json();
+    rosterCache[currentYear] = data;
+    return data;
+  } catch(e) {
+    alert(`명부 파일을 불러올 수 없습니다.\n${e.message}`);
+    return null;
+  } finally {
+    setRosterBtnLoading(false);
+  }
+}
+
+// 필터 적용된 roster 데이터 반환
+function getRosterData(rosterDB) {
+  if (!rosterDB) return [];
+  const medKey = currentMedical === 'include' ? 'include' : 'exclude';
+  const yearData = rosterDB[medKey];
+  const filterKey = getFilterKey();
+  if (filterKey && yearData.filters?.[filterKey]) return yearData.filters[filterKey];
+  return yearData.all || [];
+}
+
+async function openRosterTab() {
+  const rosterDB = await loadRoster();
+  const roster = getRosterData(rosterDB);
   if (!roster.length) { alert('표시할 데이터가 없습니다.'); return; }
-  const headers = DB.meta.roster_headers || Object.keys(roster[0]);
+  const headers = DB.meta.roster_headers;
   const filterLabel = getFilterLabel();
 
   const html = `<!DOCTYPE html>
@@ -1179,9 +1207,7 @@ function openRosterTab() {
 </style>
 </head>
 <body>
-<h2>전임교원 명부 - ${currentYear}학년도
-  <span class="total">${roster.length}명</span>
-</h2>
+<h2>전임교원 명부 - ${currentYear}학년도 <span class="total">${roster.length}명</span></h2>
 <p>필터: ${filterLabel} · 의학계열: ${currentMedical === 'exclude' ? '제외' : '포함'}</p>
 <table>
   <thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
@@ -1189,18 +1215,15 @@ function openRosterTab() {
 </table>
 </body></html>`;
 
-  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
+  window.open(URL.createObjectURL(new Blob([html], {type:'text/html;charset=utf-8'})), '_blank');
 }
 
-function downloadRosterExcel() {
-  const roster = getRoster();
+async function downloadRosterExcel() {
+  const rosterDB = await loadRoster();
+  const roster = getRosterData(rosterDB);
   if (!roster.length) { alert('다운로드할 데이터가 없습니다.'); return; }
-  const headers = DB.meta.roster_headers || Object.keys(roster[0]);
+  const headers = DB.meta.roster_headers;
   const filterLabel = getFilterLabel();
-
-  // CSV 생성 (BOM 포함으로 한글 깨짐 방지)
   const bom = '﻿';
   const csvRows = [
     headers.join(','),
