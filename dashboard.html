@@ -41,7 +41,7 @@
   .btn:hover{border-color:var(--accent);color:var(--text)}
   .btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.amber.active{background:var(--accent4);border-color:var(--accent4)}
-  select{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;outline:none;appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+  select{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;outline:none;appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;color-scheme:dark}
 
   /* KPI */
   .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
@@ -49,7 +49,7 @@
   .kpi-card:hover{transform:translateY(-2px);border-color:rgba(59,130,246,.4)}
   .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kpi-color,var(--accent))}
   .kpi-icon{font-size:18px;margin-bottom:8px}
-  .kpi-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+  .kpi-label{font-size:16px;color:var(--text-dim);font-weight:600;letter-spacing:-.3px;margin-bottom:4px}
   .kpi-value{font-size:36px;font-weight:900;font-family:'DM Mono',monospace;line-height:1;color:var(--text)}
   .kpi-value small{font-size:15px;font-weight:400;color:var(--text-muted);margin-left:3px}
   .kpi-sub{font-size:13px;color:var(--text-muted);margin-top:5px}
@@ -162,6 +162,12 @@
   .sub-filter{display:none;margin-top:6px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
   .sub-filter.show{display:flex;flex-wrap:wrap;gap:5px}
 
+  /* 비정년트랙 필터 비활성화 상태 */
+  .filter-bar.disabled{opacity:.35;pointer-events:none}
+  .filter-bar.disabled .filter-chip{cursor:not-allowed}
+  .nontenure-disabled-msg{font-size:11px;color:var(--text-muted);margin-bottom:8px;padding:6px 10px;background:rgba(30,45,69,.6);border-radius:6px;display:none}
+  .nontenure-disabled-msg.show{display:block}
+
   /* ACTIVE FILTER SUMMARY */
   .filter-summary{display:flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;margin-bottom:16px;flex-wrap:wrap;font-size:13px;color:var(--text-dim)}
   .filter-summary .fs-label{color:var(--accent2);font-weight:600;margin-right:2px}
@@ -229,10 +235,11 @@
       <span class="fs-label">학년도</span>
       <select id="yearSelect" onchange="onYearChange()" style="
         padding:3px 28px 3px 10px;border-radius:8px;border:1px solid rgba(59,130,246,.3);
-        background:rgba(59,130,246,.1);color:var(--text);font-size:13px;
+        background:#1a2235;color:#e2e8f0;font-size:13px;
         font-family:'Noto Sans KR',sans-serif;cursor:pointer;outline:none;appearance:none;
-        background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 fill=%22none%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%2264748b%22 stroke-width=%221.5%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');
+        background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 fill=%22none%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%2294a3b8%22 stroke-width=%221.5%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');
         background-repeat:no-repeat;background-position:right 8px center;font-weight:600;
+        color-scheme:dark;
       "></select>
       <span style="color:rgba(59,130,246,.4);margin:0 4px">│</span>
       <span class="fs-label">필터</span>
@@ -292,7 +299,7 @@
     <div style="margin-bottom:14px">
       <div class="card">
         <div class="card-title"><span class="dot c"></span>전임교원 확보율 추이</div>
-        <div class="chart-wrap h280"><canvas id="rateChart"></canvas></div>
+        <div class="chart-wrap" style="height:320px"><canvas id="rateChart"></canvas></div>
         <p style="margin-top:10px;font-size:12px;color:var(--accent4);line-height:1.6;border-top:1px solid var(--border);padding-top:8px">
           ※ 전임교원 확보율은 의학계열을 제외하고 산출하며, 매 학년도별 4월 1일 고등교육통계조사 기준임
         </p>
@@ -313,6 +320,9 @@
       </div>
       <div class="card">
         <div class="card-title"><span class="dot c"></span>비정년트랙별 현황</div>
+        <div class="nontenure-disabled-msg" id="nonTenureDisabledMsg">
+          ℹ️ 트랙별 현황에서 <strong>비정년트랙</strong>을 선택하면 필터가 활성화됩니다
+        </div>
         <div class="filter-bar" id="nonTenureFilter">
           <span class="filter-chip active" onclick="setFilter('non_tenure','전체',this)">전체</span>
           <span class="filter-chip" onclick="setFilter('non_tenure','강의전담',this)">강의전담</span>
@@ -468,7 +478,9 @@ function initDashboard() {
   document.getElementById('dashboardContent').style.display = 'block';
 
   // Meta info
-  document.getElementById('lastUpdate').textContent = DB.meta.updated;
+  // 날짜만 있으면 그대로, 시분초 없으면 날짜만 표시
+  const updatedRaw = DB.meta.updated || '-';
+  document.getElementById('lastUpdate').textContent = updatedRaw;
   document.getElementById('dataSource').textContent = DB.meta.source || 'dashboard_data.json';
 
   // Year selector
@@ -484,6 +496,10 @@ function initDashboard() {
 
   document.getElementById('yearBadge').textContent = currentYear + '학년도';
   document.getElementById('headerMeta').textContent = `RAWDATA 기반 · ${DB.meta.years.length}개년 데이터`;
+
+  // 초기 상태: 비정년트랙 필터 비활성화
+  document.getElementById('nonTenureFilter').classList.add('disabled');
+  document.getElementById('nonTenureDisabledMsg').classList.add('show');
 
   renderAll();
   updateFilterSummary();
@@ -543,15 +559,27 @@ function getSummary(year) {
 function setFilter(type, value, chipEl) {
   activeFilters[type] = value;
 
-  // 트랙 필터 변경 시 비정년 필터 초기화
-  if (type === 'track' && value !== '비정년트랙') {
-    activeFilters.non_tenure = '전체';
-    document.querySelectorAll('#nonTenureFilter .filter-chip').forEach(c => {
-      c.classList.toggle('active', c.textContent.trim() === '전체');
-    });
+  // 트랙 필터 변경 시 비정년트랙 필터 활성화/비활성화 처리
+  if (type === 'track') {
+    const ntFilter = document.getElementById('nonTenureFilter');
+    const ntMsg = document.getElementById('nonTenureDisabledMsg');
+
+    if (value === '비정년트랙') {
+      // 비정년트랙 선택 → 필터 활성화
+      ntFilter.classList.remove('disabled');
+      ntMsg.classList.remove('show');
+    } else {
+      // 전체 또는 정년트랙 선택 → 비정년트랙 필터 비활성화 + 초기화
+      ntFilter.classList.add('disabled');
+      ntMsg.classList.add('show');
+      activeFilters.non_tenure = '전체';
+      document.querySelectorAll('#nonTenureFilter .filter-chip').forEach(c => {
+        c.classList.toggle('active', c.textContent.trim() === '전체');
+      });
+    }
   }
 
-  // 칩 active 상태 업데이트 (filter-bar 타입)
+  // 칩 active 상태 업데이트
   if (chipEl) {
     const bar = chipEl.closest('.filter-bar, .sub-filter');
     if (bar) {
@@ -569,10 +597,12 @@ function resetAllFilters() {
 
   // 칩 초기화
   document.querySelectorAll('.filter-bar .filter-chip, .sub-filter .filter-chip').forEach(c => {
-    c.classList.toggle('active', c.textContent.trim() === '전체' || c.textContent.trim() === '전체');
+    c.classList.toggle('active', c.textContent.trim() === '전체');
   });
-  // 비정년 하위 필터 숨기기
-  document.getElementById('nonTenureFilter').classList.remove('show');
+
+  // 비정년트랙 필터 비활성화 (전체 선택 상태)
+  document.getElementById('nonTenureFilter').classList.add('disabled');
+  document.getElementById('nonTenureDisabledMsg').classList.add('show');
 
   updateFilterSummary();
   renderAll();
@@ -737,7 +767,7 @@ function renderRateChart() {
     },
     options: {
       responsive:true, maintainAspectRatio:false,
-      layout: { padding: { top: 44, right: 20, left: 8, bottom: 8 } },
+      layout: { padding: { top: 60, right: 24, left: 8, bottom: 8 } },
       plugins:{
         legend:{display:false},
         tooltip:{
