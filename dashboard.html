@@ -1224,7 +1224,7 @@ async function downloadRosterExcel() {
   if (!roster.length) { alert('다운로드할 데이터가 없습니다.'); return; }
   const headers = DB.meta.roster_headers;
   const filterLabel = getFilterLabel();
-  const bom = '﻿';
+  const bom = '\uFEFF';
   const csvRows = [
     headers.join(','),
     ...roster.map(row => headers.map(h => {
@@ -1232,15 +1232,12 @@ async function downloadRosterExcel() {
       return val.includes(',') || val.includes('"') ? `"${val.replace(/"/g,'""')}"` : val;
     }).join(','))
   ];
-  const csv = bom + csvRows.join('
-');
+  const csv = bom + csvRows.join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
+  a.href = URL.createObjectURL(blob);
   a.download = `교원명부_${currentYear}학년도_${filterLabel}.csv`;
   a.click();
-  URL.revokeObjectURL(url);
 }
 
 // ============ BOOT ============
