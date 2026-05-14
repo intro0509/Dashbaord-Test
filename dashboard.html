@@ -133,6 +133,36 @@
 
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
+  /* FILTER CHIPS */
+  .filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .filter-chip{padding:3px 10px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-size:11px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .15s;white-space:nowrap}
+  .filter-chip:hover{border-color:var(--accent);color:var(--text)}
+  .filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .filter-chip.active.amber{background:var(--accent4);border-color:var(--accent4)}
+  .filter-chip.active.green{background:var(--accent5);border-color:var(--accent5)}
+  .filter-chip.active.purple{background:var(--accent3);border-color:var(--accent3)}
+  .filter-chip.active.cyan{background:var(--accent2);border-color:var(--accent2)}
+  .filter-chip.active.red{background:var(--danger);border-color:var(--danger)}
+
+  /* RADIO FILTER */
+  .radio-filter{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .radio-filter label{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted);cursor:pointer;transition:color .15s}
+  .radio-filter label:hover{color:var(--text)}
+  .radio-filter input[type=radio]{accent-color:var(--accent);width:13px;height:13px;cursor:pointer}
+  .radio-filter input[type=radio]:checked + span{color:var(--text);font-weight:600}
+
+  /* NON-TENURE SUB FILTER */
+  .sub-filter{display:none;margin-top:6px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+  .sub-filter.show{display:flex;flex-wrap:wrap;gap:5px}
+
+  /* ACTIVE FILTER SUMMARY */
+  .filter-summary{display:flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;margin-bottom:16px;flex-wrap:wrap;font-size:11px;color:var(--text-dim)}
+  .filter-summary .fs-label{color:var(--accent2);font-weight:600;margin-right:2px}
+  .filter-summary .fs-tag{background:rgba(59,130,246,.15);color:var(--accent);padding:2px 8px;border-radius:10px}
+  .filter-summary .fs-total{margin-left:auto;font-family:'DM Mono',monospace;font-weight:700;color:var(--text)}
+  .filter-reset{padding:2px 8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:10px;cursor:pointer;transition:all .15s;font-family:'Noto Sans KR',sans-serif}
+  .filter-reset:hover{border-color:var(--danger);color:var(--danger)}
+
   footer{text-align:center;font-size:11px;color:var(--text-muted);padding:20px 0 8px;font-family:'DM Mono',monospace}
 
   @media(max-width:1024px){
@@ -191,6 +221,14 @@
   <!-- DASHBOARD (hidden until loaded) -->
   <div id="dashboardContent" style="display:none">
 
+    <!-- ACTIVE FILTER SUMMARY -->
+    <div class="filter-summary" id="filterSummary">
+      <span class="fs-label">필터</span>
+      <span id="filterTags">전체 데이터</span>
+      <button class="filter-reset" onclick="resetAllFilters()">✕ 필터 초기화</button>
+      <span class="fs-total" id="filterTotal"></span>
+    </div>
+
     <!-- KPI CARDS -->
     <div class="kpi-row">
       <div class="kpi-card" style="--kpi-color:#3b82f6;animation-delay:.05s">
@@ -228,6 +266,18 @@
       </div>
       <div class="card">
         <div class="card-title"><span class="dot p"></span>트랙별 현황</div>
+        <div class="filter-bar" id="trackFilter">
+          <span class="filter-chip active" onclick="setFilter('track','전체',this)">전체</span>
+          <span class="filter-chip" onclick="setFilter('track','정년트랙',this)">정년트랙</span>
+          <span class="filter-chip" onclick="setFilter('track','비정년트랙',this)">비정년트랙</span>
+        </div>
+        <div class="sub-filter" id="nonTenureFilter">
+          <span class="filter-chip active" onclick="setFilter('non_tenure','전체',this)">전체</span>
+          <span class="filter-chip" onclick="setFilter('non_tenure','강의전담',this)">강의전담</span>
+          <span class="filter-chip" onclick="setFilter('non_tenure','연구전담',this)">연구전담</span>
+          <span class="filter-chip" onclick="setFilter('non_tenure','산학협력전담',this)">산학협력전담</span>
+          <span class="filter-chip" onclick="setFilter('non_tenure','외국인',this)">외국인</span>
+        </div>
         <div class="track-list" id="trackList"></div>
       </div>
     </div>
@@ -236,11 +286,22 @@
     <div class="grid-3">
       <div class="card">
         <div class="card-title"><span class="dot a"></span>직급별 현황</div>
+        <div class="radio-filter" id="rankFilter">
+          <label><input type="radio" name="rank" value="전체" checked onchange="setFilter('rank','전체')"><span>전체</span></label>
+          <label><input type="radio" name="rank" value="교수" onchange="setFilter('rank','교수')"><span>교수</span></label>
+          <label><input type="radio" name="rank" value="부교수" onchange="setFilter('rank','부교수')"><span>부교수</span></label>
+          <label><input type="radio" name="rank" value="조교수" onchange="setFilter('rank','조교수')"><span>조교수</span></label>
+        </div>
         <div class="rank-grid" id="rankGrid"></div>
         <div class="chart-wrap h160"><canvas id="rankChart"></canvas></div>
       </div>
       <div class="card">
         <div class="card-title"><span class="dot c"></span>성별 현황</div>
+        <div class="radio-filter" id="genderFilter">
+          <label><input type="radio" name="gender" value="전체" checked onchange="setFilter('gender','전체')"><span>전체</span></label>
+          <label><input type="radio" name="gender" value="남자" onchange="setFilter('gender','남자')"><span>남자</span></label>
+          <label><input type="radio" name="gender" value="여자" onchange="setFilter('gender','여자')"><span>여자</span></label>
+        </div>
         <div class="gender-wrap">
           <div class="chart-wrap h160" style="width:155px;flex-shrink:0"><canvas id="genderChart"></canvas></div>
           <div class="gender-legend" id="genderLegend"></div>
@@ -257,10 +318,31 @@
     <div class="grid-2">
       <div class="card">
         <div class="card-title"><span class="dot a"></span>연령대별 분포</div>
+        <div class="filter-bar" id="ageFilter" style="margin-bottom:10px">
+          <span class="filter-chip active amber" onclick="setFilter('age','전체',this)">전체</span>
+          <span class="filter-chip" onclick="setFilter('age','25세-30세',this)">25-30세</span>
+          <span class="filter-chip" onclick="setFilter('age','30세-35세',this)">30-35세</span>
+          <span class="filter-chip" onclick="setFilter('age','35세-40세',this)">35-40세</span>
+          <span class="filter-chip" onclick="setFilter('age','40세-45세',this)">40-45세</span>
+          <span class="filter-chip" onclick="setFilter('age','45세-50세',this)">45-50세</span>
+          <span class="filter-chip" onclick="setFilter('age','50세-55세',this)">50-55세</span>
+          <span class="filter-chip" onclick="setFilter('age','55세-60세',this)">55-60세</span>
+          <span class="filter-chip" onclick="setFilter('age','60세-65세',this)">60-65세</span>
+        </div>
         <div class="histo-wrap" id="ageHisto"></div>
       </div>
       <div class="card">
         <div class="card-title"><span class="dot g"></span>재직기간별 분포</div>
+        <div class="filter-bar" id="tenureFilter" style="margin-bottom:10px">
+          <span class="filter-chip active green" onclick="setFilter('tenure','전체',this)">전체</span>
+          <span class="filter-chip" onclick="setFilter('tenure','5년 이하',this)">5년 이하</span>
+          <span class="filter-chip" onclick="setFilter('tenure','5년-10년',this)">5-10년</span>
+          <span class="filter-chip" onclick="setFilter('tenure','10년-15년',this)">10-15년</span>
+          <span class="filter-chip" onclick="setFilter('tenure','15년-20년',this)">15-20년</span>
+          <span class="filter-chip" onclick="setFilter('tenure','20년-25년',this)">20-25년</span>
+          <span class="filter-chip" onclick="setFilter('tenure','25년-30년',this)">25-30년</span>
+          <span class="filter-chip" onclick="setFilter('tenure','30년 초과',this)">30년 초과</span>
+        </div>
         <div class="histo-wrap" id="tenureHisto"></div>
       </div>
     </div>
@@ -291,7 +373,15 @@ let currentYear = null;
 let currentMedical = 'exclude';
 let charts = {};
 
-// 의학과 제외 기준: 원소속 = '의학과' (임상교원)
+// 필터 상태
+let activeFilters = {
+  track: '전체',
+  non_tenure: '전체',
+  rank: '전체',
+  gender: '전체',
+  age: '전체',
+  tenure: '전체'
+};
 
 // ============ CHART DEFAULTS ============
 Chart.defaults.color = '#64748b';
@@ -353,6 +443,7 @@ function initDashboard() {
   document.getElementById('headerMeta').textContent = `RAWDATA 기반 · ${DB.meta.years.length}개년 데이터`;
 
   renderAll();
+  updateFilterSummary();
 }
 
 function onYearChange() {
@@ -372,12 +463,111 @@ function setMedical(mode) {
 function getSummary(year) {
   const base = DB.summary[year];
   if (!base) return null;
-  // JSON에 include/exclude가 분리되어 있으면 그대로 사용 (의학과=원소속 기준)
-  if (base.include !== undefined && base.exclude !== undefined) {
-    return currentMedical === 'include' ? base.include : base.exclude;
+
+  const medKey = currentMedical === 'include' ? 'include' : 'exclude';
+  const yearData = base[medKey] || base;
+
+  // 필터가 모두 전체면 base 그대로
+  const f = activeFilters;
+  const allDefault = Object.values(f).every(v => v === '전체');
+  if (allDefault) return yearData.base || yearData;
+
+  // 필터 키 조합
+  let filterKey = null;
+  if (f.track !== '전체') {
+    if (f.track === '비정년트랙' && f.non_tenure !== '전체') {
+      filterKey = `track:비정년트랙|non_tenure:${f.non_tenure}`;
+    } else {
+      filterKey = `track:${f.track}`;
+    }
+  } else if (f.rank !== '전체') {
+    filterKey = `rank:${f.rank}`;
+  } else if (f.gender !== '전체') {
+    filterKey = `gender:${f.gender}`;
+  } else if (f.age !== '전체') {
+    filterKey = `age:${f.age}`;
+  } else if (f.tenure !== '전체') {
+    filterKey = `tenure:${f.tenure}`;
   }
-  // 구버전 JSON 호환
-  return base;
+
+  if (filterKey && yearData.filters && yearData.filters[filterKey]) {
+    return yearData.filters[filterKey];
+  }
+  return yearData.base || yearData;
+}
+
+// ============ FILTER CONTROL ============
+function setFilter(type, value, chipEl) {
+  activeFilters[type] = value;
+
+  // 비정년트랙 선택 시 하위 필터 표시
+  if (type === 'track') {
+    const subFilter = document.getElementById('nonTenureFilter');
+    if (value === '비정년트랙') {
+      subFilter.classList.add('show');
+    } else {
+      subFilter.classList.remove('show');
+      activeFilters.non_tenure = '전체';
+      // 하위 필터 초기화
+      document.querySelectorAll('#nonTenureFilter .filter-chip').forEach(c => {
+        c.classList.toggle('active', c.textContent === '전체');
+      });
+    }
+  }
+
+  // 칩 active 상태 업데이트 (filter-bar 타입)
+  if (chipEl) {
+    const bar = chipEl.closest('.filter-bar, .sub-filter');
+    if (bar) {
+      bar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chipEl.classList.add('active');
+    }
+  }
+
+  updateFilterSummary();
+  renderAll();
+}
+
+function resetAllFilters() {
+  activeFilters = { track:'전체', non_tenure:'전체', rank:'전체', gender:'전체', age:'전체', tenure:'전체' };
+
+  // 칩 초기화
+  document.querySelectorAll('.filter-bar .filter-chip, .sub-filter .filter-chip').forEach(c => {
+    c.classList.toggle('active', c.textContent.trim() === '전체' || c.textContent.trim() === '전체');
+  });
+  // 라디오 초기화
+  document.querySelectorAll('input[type=radio][value="전체"]').forEach(r => r.checked = true);
+  // 비정년 하위 필터 숨기기
+  document.getElementById('nonTenureFilter').classList.remove('show');
+
+  updateFilterSummary();
+  renderAll();
+}
+
+function updateFilterSummary() {
+  const f = activeFilters;
+  const tags = [];
+  if (f.track !== '전체') tags.push(f.track);
+  if (f.non_tenure !== '전체') tags.push(f.non_tenure);
+  if (f.rank !== '전체') tags.push(f.rank);
+  if (f.gender !== '전체') tags.push(f.gender);
+  if (f.age !== '전체') tags.push(f.age);
+  if (f.tenure !== '전체') tags.push(f.tenure);
+
+  const tagsEl = document.getElementById('filterTags');
+  const totalEl = document.getElementById('filterTotal');
+  const summaryEl = document.getElementById('filterSummary');
+
+  if (tags.length === 0) {
+    tagsEl.innerHTML = '<span style="color:var(--text-muted)">전체 데이터</span>';
+    summaryEl.style.borderColor = 'rgba(59,130,246,.2)';
+  } else {
+    tagsEl.innerHTML = tags.map(t => `<span class="fs-tag">${t}</span>`).join('');
+    summaryEl.style.borderColor = 'rgba(245,158,11,.4)';
+  }
+
+  const s = getSummary(currentYear);
+  if (s) totalEl.textContent = `${s.total.toLocaleString()}명`;
 }
 
 // ============ RENDER ALL ============
@@ -385,6 +575,7 @@ function renderAll() {
   const s = getSummary(currentYear);
   if (!s) return;
 
+  updateFilterSummary();
   renderKPI(s);
   renderRateChart();
   renderTrackList(s);
@@ -430,7 +621,7 @@ function renderKPI(s) {
   const rateObj = DB.rate[currentYear];
   const rateVal = rateObj ? (rateObj[rateKey] ?? rateObj.exclude) : null;
   document.getElementById('rateLabel').textContent = currentMedical === 'exclude' ? '확보율 (의학 제외)' : '확보율 (의학 포함)';
-  document.getElementById('kpiRate').innerHTML = rateVal ? `${rateVal.toFixed(1)}<small>%</small>` : `–<small>%</small>`;
+  document.getElementById('kpiRate').innerHTML = rateVal ? `${rateVal.toFixed(2)}<small>%</small>` : `–<small>%</small>`;
 
   if (idx > 0) {
     const prevRateObj = DB.rate[years[idx-1]];
@@ -466,6 +657,7 @@ function renderRateChart() {
   const rateKey = currentMedical === 'exclude' ? 'exclude' : 'include';
   const allYears = Object.keys(DB.rate).sort();
   const vals = allYears.map(y => DB.rate[y] ? (DB.rate[y][rateKey] ?? DB.rate[y].exclude ?? null) : null);
+  const lastIdx = allYears.length - 1; // 가장 최근 학년도 인덱스
 
   const ctx = document.getElementById('rateChart').getContext('2d');
   if (charts.rate) charts.rate.destroy();
@@ -474,7 +666,19 @@ function renderRateChart() {
   grad.addColorStop(0,'rgba(6,182,212,0.25)');
   grad.addColorStop(1,'rgba(6,182,212,0)');
 
-  const highlightIdx = allYears.indexOf(currentYear);
+  // 각 포인트 스타일: 최근값 강조
+  const pointBgColors = allYears.map((_,i) =>
+    i === lastIdx ? '#fff' : '#06b6d4'
+  );
+  const pointBorderColors = allYears.map((_,i) =>
+    i === lastIdx ? '#06b6d4' : 'transparent'
+  );
+  const pointRadii = allYears.map((_,i) =>
+    i === lastIdx ? 9 : 4
+  );
+  const pointHoverRadii = allYears.map((_,i) =>
+    i === lastIdx ? 11 : 6
+  );
 
   charts.rate = new Chart(ctx, {
     type: 'line',
@@ -486,28 +690,88 @@ function renderRateChart() {
         borderColor: '#06b6d4',
         backgroundColor: grad,
         borderWidth: 2,
-        pointBackgroundColor: allYears.map((_,i) => i===highlightIdx ? '#fff' : '#06b6d4'),
-        pointBorderColor: allYears.map((_,i) => i===highlightIdx ? '#06b6d4' : 'transparent'),
+        pointBackgroundColor: pointBgColors,
+        pointBorderColor: pointBorderColors,
         pointBorderWidth: 2,
-        pointRadius: allYears.map((_,i) => i===highlightIdx ? 6 : 4),
-        fill: true, tension: 0.4
+        pointRadius: pointRadii,
+        pointHoverRadius: pointHoverRadii,
+        fill: true, tension: 0.4,
+        datalabels: {
+          display: true
+        }
       }]
     },
     options: {
       responsive:true, maintainAspectRatio:false,
+      layout: { padding: { top: 24, right: 16 } },
       plugins:{
         legend:{display:false},
         tooltip:{
           backgroundColor:'#1a2235',borderColor:'#1e2d45',borderWidth:1,
           callbacks:{label: c=>` 확보율: ${c.parsed.y?.toFixed(2)}%`}
         },
-        annotation: {}
+        // 각 포인트 위에 수치 표시 (커스텀 플러그인)
+        rateLabels: true
       },
       scales:{
         x:{grid:{color:GRID},ticks:{color:TICK}},
         y:{grid:{color:GRID},ticks:{color:TICK,callback:v=>v+'%'},min:55,max:75}
       }
-    }
+    },
+    plugins: [{
+      id: 'rateLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx, data } = chart;
+        const dataset = chart.getDatasetMeta(0);
+        data.datasets[0].data.forEach((val, i) => {
+          if (val === null) return;
+          const point = dataset.data[i];
+          const x = point.x;
+          const y = point.y;
+          const isLast = i === lastIdx;
+
+          ctx.save();
+
+          // 배경 박스
+          const label = val.toFixed(2) + '%';
+          ctx.font = isLast
+            ? 'bold 12px "DM Mono", monospace'
+            : '10px "DM Mono", monospace';
+          const textW = ctx.measureText(label).width;
+          const boxPad = isLast ? 5 : 3;
+          const boxH = isLast ? 20 : 16;
+          const boxW = textW + boxPad * 2;
+          const boxX = x - boxW / 2;
+          const boxY = y - (isLast ? 34 : 26);
+
+          // 최근값은 강조 박스, 나머지는 반투명 배경
+          if (isLast) {
+            ctx.fillStyle = '#06b6d4';
+            ctx.beginPath();
+            ctx.roundRect(boxX, boxY, boxW, boxH, 4);
+            ctx.fill();
+            // 말풍선 꼬리
+            ctx.beginPath();
+            ctx.moveTo(x - 4, boxY + boxH);
+            ctx.lineTo(x, boxY + boxH + 5);
+            ctx.lineTo(x + 4, boxY + boxH);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+          } else {
+            ctx.fillStyle = 'rgba(17,24,39,0.75)';
+            ctx.beginPath();
+            ctx.roundRect(boxX, boxY, boxW, boxH, 3);
+            ctx.fill();
+            ctx.fillStyle = '#94a3b8';
+          }
+
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, x, boxY + boxH / 2);
+          ctx.restore();
+        });
+      }
+    }]
   });
 }
 
@@ -662,6 +926,13 @@ function renderTrendChart() {
   const ctx = document.getElementById('trendChart').getContext('2d');
   if (charts.trend) charts.trend.destroy();
 
+  const getBase = y => {
+    const s = DB.summary[y];
+    if (!s) return null;
+    const medKey = currentMedical === 'include' ? 'include' : 'exclude';
+    return (s[medKey] || s).base || s[medKey] || s;
+  };
+
   charts.trend = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -669,20 +940,20 @@ function renderTrendChart() {
       datasets: [
         {
           label: '정년트랙',
-          data: years.map(y => DB.summary[y]?.tenure_track || 0),
+          data: years.map(y => getBase(y)?.tenure_track || 0),
           backgroundColor: 'rgba(59,130,246,0.7)',
           borderRadius: 3, borderWidth: 0, stack: 'a'
         },
         {
           label: '비정년트랙',
-          data: years.map(y => DB.summary[y]?.non_tenure || 0),
+          data: years.map(y => getBase(y)?.non_tenure || 0),
           backgroundColor: 'rgba(139,92,246,0.7)',
           borderRadius: 3, borderWidth: 0, stack: 'a'
         },
         {
           type: 'line',
           label: '전체',
-          data: years.map(y => DB.summary[y]?.total || 0),
+          data: years.map(y => getBase(y)?.total || 0),
           borderColor: '#06b6d4',
           backgroundColor: 'transparent',
           borderWidth: 2,
