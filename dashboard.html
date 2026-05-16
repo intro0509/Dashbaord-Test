@@ -981,9 +981,9 @@ function renderHisto(cid, dataObj, colors, total) {
       const W = chart.canvas.width / (window.devicePixelRatio || 1);
       const H = chart.canvas.height / (window.devicePixelRatio || 1);
 
-      // 레이블존 55% | 차트존 45%
+      // 레이블존 55% | 차트존 45% — cx는 전체의 72% 지점(오른쪽 영역 중앙)
       const chartZoneW = W * 0.45;
-      const cx = W * 0.55 + chartZoneW * 0.5;
+      const cx = W * 0.72;
       const cy = H / 2;
       const outerR = Math.min(chartZoneW, H) / 2 * 0.88;
 
