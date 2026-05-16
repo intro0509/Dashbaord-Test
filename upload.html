@@ -359,14 +359,14 @@ async function processFile() {
     log(`📊 확보율 열: C열(${rateColIdx+1}번째), D열(${rateIncColIdx+1}번째)`, '');
     setProgress(20);
 
-    // ── 확보율 데이터 읽기 (raw:true 숫자로 정확히 읽기, 전체 행 순회) ──
+    // ── 확보율 데이터 읽기 (raw:true로 숫자 정확히, 전체 행 순회) ──
     const rateData = {};
     for (let i = 0; i < rawRowsNum.length; i++) {
       const row = rawRowsNum[i];
       if (!row) continue;
-      const yrRaw = row[1];
+      const yrRaw = row[1]; // B열: 학년도
       if (yrRaw === null || yrRaw === undefined || yrRaw === '') continue;
-      const yr = String(yrRaw).trim().replace(/\.0$/, '');
+      const yr = String(Math.floor(Number(yrRaw)));
       if (!yr.match(/^\d{4}$/)) continue;
       const exclRaw = row[rateColIdx];
       const inclRaw = row[rateIncColIdx];
