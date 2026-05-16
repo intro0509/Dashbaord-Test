@@ -251,11 +251,6 @@ function onSheetChange() {
 
 
 
-  // 새 입력칸으로 스크롤 & 포커스
-  newItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  newItem.querySelector('input').focus();
-}
-
 // ─── PROCESS ───
 // ── 파생 컬럼 계산 함수 ──
 function calcTenureGroup(qStr) {
@@ -336,52 +331,50 @@ async function processFile() {
 
     // ── 헤더 행 탐색 ──
     let headerIdx = -1;
-    let rateColIdx = -1;  // 확보율(의학계열 제외) 열 인덱스
-    let rateIncColIdx = -1; // 확보율(의학계열 포함) 열 인덱스
-    let dataStartCol = -1;  // RAWDATA 시작 열 인덱스 (학년도, 교직원번호...)
+    let dataStartCol = -1;
+    let rateColIdx = 2;    // 기본값: C열(인덱스2) = 확보율(의학계열 제외)
+    let rateIncColIdx = 3; // 기본값: D열(인덱스3) = 확보율(의학계열 포함)
 
     for (let i = 0; i < rawRows.length; i++) {
       const row = rawRows[i];
       if (!row) continue;
-      // 헤더 행: '학년도'와 '교직원번호' 모두 포함
       if (row.includes('교직원번호') && row.includes('학년도')) {
         headerIdx = i;
-        // 확보율 열 찾기 (B~D 영역)
+        // 확보율 열 동적 탐색 (못찾으면 기본값 C,D열 사용)
         row.forEach((cell, idx) => {
-          if (String(cell||'').includes('확보율') && String(cell||'').includes('제외')) rateColIdx = idx;
-          if (String(cell||'').includes('확보율') && String(cell||'').includes('포함')) rateIncColIdx = idx;
+          const s = String(cell||'').replace(/\s/g,''); // 줄바꿈/공백 모두 제거
+          if (s.includes('확보율') && s.includes('제외')) rateColIdx = idx;
+          if (s.includes('확보율') && s.includes('포함')) rateIncColIdx = idx;
         });
-        // RAWDATA 시작 열 = '교직원번호' 왼쪽의 '학년도' 위치
-        // 구조: B=학년도(확보율용), F=학년도(RAWDATA용), G=교직원번호...
         const empIdx = row.indexOf('교직원번호');
-        dataStartCol = empIdx > 0 ? empIdx - 1 : row.indexOf('학년도'); // 학년도가 먼저 나옴
+        dataStartCol = empIdx > 0 ? empIdx - 1 : row.indexOf('학년도');
         break;
       }
     }
 
     if (headerIdx < 0) throw new Error('헤더 행(학년도, 교직원번호...)을 찾을 수 없습니다.');
 
-    // RAWDATA 헤더 (교직원번호 포함된 열부터)
     const fullHeader = rawRows[headerIdx];
     const dataHeader = fullHeader.slice(dataStartCol).filter(h => h !== null && h !== undefined && h !== '');
 
     log(`✅ 헤더 발견 (행 ${headerIdx+1}): ${dataHeader.slice(0,5).join(', ')}...`, 'log-ok');
-    log(`📊 확보율 열: ${rateColIdx >= 0 ? fullHeader[rateColIdx] : '미발견'} (열${rateColIdx+1})`, '');
+    log(`📊 확보율 열: C열(${rateColIdx+1}번째), D열(${rateIncColIdx+1}번째)`, '');
     setProgress(20);
 
-    // ── 확보율 데이터 읽기 (B~D 영역) ──
+    // ── 확보율 데이터 읽기 (B열=학년도, C열=제외, D열=포함) ──
     const rateData = {};
-    const rateYrColIdx = 1; // B열 = 인덱스 1 (학년도)
     for (let i = headerIdx + 1; i < rawRows.length; i++) {
       const row = rawRows[i];
-      if (!row || !row[rateYrColIdx]) continue;
-      const yr = String(row[rateYrColIdx]);
+      if (!row) continue;
+      const yr = String(row[1]||'').trim(); // B열: 학년도
       if (!yr.match(/^\d{4}$/)) continue;
-      const excl = rateColIdx >= 0 ? parseFloat(row[rateColIdx]) : null;
-      const incl = rateIncColIdx >= 0 ? parseFloat(row[rateIncColIdx]) : null;
+      const exclRaw = row[rateColIdx];
+      const inclRaw = row[rateIncColIdx];
+      const excl = (exclRaw !== null && exclRaw !== undefined && exclRaw !== '') ? parseFloat(exclRaw) : null;
+      const incl = (inclRaw !== null && inclRaw !== undefined && inclRaw !== '') ? parseFloat(inclRaw) : null;
       rateData[yr] = {
-        exclude: isNaN(excl) ? null : excl,
-        include: isNaN(incl) ? null : incl
+        exclude: (excl !== null && !isNaN(excl)) ? excl : null,
+        include: (incl !== null && !isNaN(incl)) ? incl : null
       };
     }
     log(`✅ 확보율 데이터: ${Object.keys(rateData).length}개년 (${Object.keys(rateData).sort().join(', ')})`, 'log-ok');
@@ -459,7 +452,7 @@ async function processFile() {
         ages:Object.fromEntries(AGE_ORDER.map(a=>[a,0])),
         tenure_dist:Object.fromEntries(TENURE_ORDER.map(t=>[t,0])),
         retire:{'퇴직예정(-)':0,'퇴직예정(+1)':0,'퇴직예정(+2)':0},
-        colleges:{},heatmap:{}, roster:[]
+        colleges:{},heatmap:{}
       };
       const tracks={정년트랙:0,강의전담:0,연구전담:0,산학협력전담:0,외국인:0};
       rows.forEach(r=>{if(r['트랙구분']==='정년트랙')tracks['정년트랙']++;else{const s=r['비정년트랙구분'];if(s&&s in tracks)tracks[s]++;}});
@@ -560,8 +553,9 @@ async function processFile() {
         const yr=baseYr+i;
         let cnt=0;
         baseRows.forEach(r=>{
-          const label=calcRetireLabel(r['정년퇴직예정일']||r['정년퇴직예정일_수정']||'');
-          if(label&&label.startsWith(String(yr)))cnt++;
+          // 정년퇴직예정일_수정 또는 calcRetireLabel 사용
+          const label = r['정년퇴직예정일_수정'] || calcRetireLabel(r['정년퇴직예정일']) || '';
+          if(label && label.startsWith(String(yr))) cnt++;
         });
         trend[String(yr)]=cnt;
       }
