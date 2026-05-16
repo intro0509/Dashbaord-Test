@@ -803,11 +803,11 @@ function renderRateChart() {
               ctx.textBaseline = 'middle';
               ctx.fillText(label, bx + bw / 2, by + bh / 2);
             } else {
-              // 말풍선 없이 텍스트만
+              // 말풍선 없이 텍스트만 (간격 추가)
               ctx.fillStyle = di === 0 ? '#1365FE' : '#9ca3af';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'bottom';
-              ctx.fillText(label, x, y - 4);
+              ctx.fillText(label, x, y - 10);
             }
             ctx.restore();
           });
@@ -945,9 +945,9 @@ function renderHisto(cid, dataObj, colors, total) {
         const color=colors[i%colors.length];
         const pct=tot>0?(values[i]/tot*100).toFixed(1):'0.0';
 
-        // 배경 호 (360° 전체)
+        // 배경 호 (270°까지만)
         c.beginPath();
-        c.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2);
+        c.arc(cx,cy,r,startAngle,startAngle+maxAngle);
         c.strokeStyle='#f0f4ff';
         c.lineWidth=barH;
         c.lineCap='round';
@@ -968,26 +968,56 @@ function renderHisto(cid, dataObj, colors, total) {
         const sy=cy+r*Math.sin(startAngle);
 
         // 시작점에 원형 화살표 아이콘
+        const iconR=barH/2+1;
         c.beginPath();
-        c.arc(sx,sy,barH/2+1,0,Math.PI*2);
+        c.arc(sx,sy,iconR,0,Math.PI*2);
         c.fillStyle='#fff';
         c.fill();
         c.strokeStyle=color;
-        c.lineWidth=2;
+        c.lineWidth=1.5;
         c.stroke();
         c.fillStyle=color;
-        c.font=`bold ${Math.max(barH*0.55,7)}px 'Pretendard',sans-serif`;
+        c.font=`bold ${Math.max(barH*0.5,7)}px 'Pretendard',sans-serif`;
         c.textAlign='center';
         c.textBaseline='middle';
         c.fillText('→',sx,sy);
 
-        // 레이블: 시작점 좌측에 한 줄로 표시
-        const fs=Math.max(Math.min(barH*0.7,11),9);
-        c.font=`600 ${fs}px 'Pretendard',sans-serif`;
-        c.fillStyle='#374151';
+        // 레이블: 시작점 좌측에 한 줄로, 도넛 범례 서식 적용
         c.textAlign='right';
         c.textBaseline='middle';
-        c.fillText(`${label}  ${values[i]}명  ${pct}%`, sx-barH/2-8, sy);
+        // 범례명 (진하게, #111827)
+        c.font=`600 12px 'Pretendard',sans-serif`;
+        c.fillStyle='#6b7280';
+        const nameStr=label;
+        const cntStr=`${values[i]}명`;
+        const pctStr=`${pct}%`;
+        const fullStr=`${nameStr}  /  ${cntStr}  /  ${pctStr}`;
+        c.fillStyle='#6b7280';
+        const tw1=c.measureText(`${nameStr}  /  `).width;
+        const tw2=c.measureText(`${cntStr}  /  `).width;
+        const tw3=c.measureText(pctStr).width;
+        const totalW=tw1+tw2+tw3;
+        const lx=sx-iconR-6;
+        // 범례명
+        c.font=`500 11px 'Pretendard',sans-serif`;
+        c.fillStyle='#6b7280';
+        c.textAlign='right';
+        c.fillText(`${nameStr}`, lx-tw2-tw3, sy);
+        // 구분자
+        c.fillStyle='#d1d5db';
+        c.fillText(`  /  `, lx-tw2-tw3+c.measureText(nameStr).width+c.measureText('  /  ').width/2, sy);
+        // 인원수 (굵게, 진한색)
+        c.font=`700 12px 'Pretendard',sans-serif`;
+        c.fillStyle='#111827';
+        c.fillText(`${cntStr}`, lx-tw3, sy);
+        // 구분자
+        c.font=`500 11px 'Pretendard',sans-serif`;
+        c.fillStyle='#d1d5db';
+        c.fillText(`  /  `, lx-tw3+c.measureText(cntStr).width/2, sy);
+        // 비율 (연한색)
+        c.font=`400 11px 'Pretendard',sans-serif`;
+        c.fillStyle='#9ca3af';
+        c.fillText(`${pctStr}`, lx, sy);
       });
       c.restore();
     }
@@ -1116,72 +1146,72 @@ function renderHeatmap(s) {
   }
 }
 
-// COLLEGE TREEMAP (Squarified, pure JS)
+// COLLEGE TREEMAP - 정확한 Squarified 알고리즘
 function squarify(items, x, y, w, h) {
   const result = [];
   const total = items.reduce((s, d) => s + d.v, 0);
-  if (!total) return result;
+  if (!total || !w || !h) return result;
 
-  // 넓이 기준으로 픽셀 면적 할당
-  const scaled = items.map(d => ({...d, area: d.v / total * w * h}));
+  const totalArea = w * h;
+  const nodes = items.map(d => ({...d, area: (d.v / total) * totalArea}));
 
-  function layoutStrip(strip, sx, sy, sw, sh, horiz) {
-    const stripTotal = strip.reduce((s, d) => s + d.area, 0);
-    let pos = 0;
-    strip.forEach(d => {
-      const ratio = d.area / stripTotal;
+  function worstRatio(row, len) {
+    const s = row.reduce((a, d) => a + d.area, 0);
+    const maxA = Math.max(...row.map(d => d.area));
+    const minA = Math.min(...row.map(d => d.area));
+    if (!s) return Infinity;
+    return Math.max(len*len*maxA/(s*s), s*s/(len*len*minA));
+  }
+
+  function layoutRow(row, rx, ry, rw, rh) {
+    const rowArea = row.reduce((a, d) => a + d.area, 0);
+    const horiz = rw >= rh;
+    let pos = horiz ? ry : rx;
+    row.forEach(d => {
+      const ratio = d.area / rowArea;
       if (horiz) {
-        result.push({...d, x: sx, y: sy + pos, w: sw, h: ratio * sh});
-        pos += ratio * sh;
+        const cw = rowArea / rh;
+        const ch = ratio * rh;
+        result.push({...d, x:rx, y:pos, w:cw, h:ch});
+        pos += ch;
       } else {
-        result.push({...d, x: sx + pos, y: sy, w: ratio * sw, h: sh});
-        pos += ratio * sw;
+        const cw = ratio * rw;
+        const ch = rowArea / rw;
+        result.push({...d, x:pos, y:ry, w:cw, h:ch});
+        pos += cw;
       }
     });
   }
 
-  function worst(strip, dim) {
-    const s = strip.reduce((a, d) => a + d.area, 0);
-    const maxA = Math.max(...strip.map(d => d.area));
-    const minA = Math.min(...strip.map(d => d.area));
-    const r1 = (dim * dim * maxA) / (s * s);
-    const r2 = (s * s) / (dim * dim * minA);
-    return Math.max(r1, r2);
-  }
-
-  function layout(items, sx, sy, sw, sh) {
-    if (!items.length) return;
-    if (items.length === 1) {
-      result.push({...items[0], x: sx, y: sy, w: sw, h: sh});
+  function tile(nodes, rx, ry, rw, rh) {
+    if (!nodes.length || rw <= 0 || rh <= 0) return;
+    if (nodes.length === 1) {
+      result.push({...nodes[0], x:rx, y:ry, w:rw, h:rh});
       return;
     }
-    const horiz = sw > sh; // 가로가 더 길면 세로로 스트립
-    const dim = horiz ? sh : sw;
-    let strip = [];
+    const horiz = rw >= rh;
+    const len = horiz ? rh : rw;
+    let row = [];
     let i = 0;
-    while (i < items.length) {
-      const candidate = [...strip, items[i]];
-      if (!strip.length || worst(strip, dim) >= worst(candidate, dim)) {
-        strip = candidate;
-        i++;
-      } else {
-        break;
-      }
+    while (i < nodes.length) {
+      const next = [...row, nodes[i]];
+      if (!row.length || worstRatio(row, len) >= worstRatio(next, len)) {
+        row = next; i++;
+      } else break;
     }
-    const stripArea = strip.reduce((s, d) => s + d.area, 0);
-    const totalArea = sw * sh;
+    const rowArea = row.reduce((a, d) => a + d.area, 0);
     if (horiz) {
-      const stripW = stripArea / sh;
-      layoutStrip(strip, sx, sy, stripW, sh, true);
-      layout(items.slice(strip.length), sx + stripW, sy, sw - stripW, sh);
+      const rowW = rowArea / rh;
+      layoutRow(row, rx, ry, rowW, rh);
+      tile(nodes.slice(i), rx + rowW, ry, rw - rowW, rh);
     } else {
-      const stripH = stripArea / sw;
-      layoutStrip(strip, sx, sy, sw, stripH, false);
-      layout(items.slice(strip.length), sx, sy + stripH, sw, sh - stripH);
+      const rowH = rowArea / rw;
+      layoutRow(row, rx, ry, rw, rowH);
+      tile(nodes.slice(i), rx, ry + rowH, rw, rh - rowH);
     }
   }
 
-  layout(scaled, x, y, w, h);
+  tile(nodes, x, y, w, h);
   return result;
 }
 
