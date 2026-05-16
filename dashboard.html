@@ -1032,12 +1032,12 @@ function renderHisto(cid, dataObj, colors, total) {
         c.textAlign='center'; c.textBaseline='middle';
         c.fillText('→',sx,sy);
 
-        // 레이블: 한 줄에 [항목명] [인원] [비율] — 촘촘하게 배치, 비율이 아이콘 직전까지
+        // 레이블: 한 줄에 [항목명] [인원] [비율] — 아이콘 직전까지 오른쪽 정렬로 촘촘하게
         c.globalAlpha=Math.min(prog*1.5,1);
         c.textBaseline='middle';
         c.textAlign='left';
 
-        // 각 텍스트 너비를 먼저 측정해서 딱 붙여 배치
+        // 각 텍스트 너비 측정
         c.font=`400 11px 'Pretendard',sans-serif`;
         const labelW = c.measureText(label).width;
 
@@ -1049,13 +1049,13 @@ function renderHisto(cid, dataObj, colors, total) {
         const pctTxt = `(${pct}%)`;
         const pctW = c.measureText(pctTxt).width;
 
-        // 아이콘 왼쪽 끝에서 역산: 비율→인원→항목명 순으로 오른쪽 정렬
-        const gap = 8;  // 열 사이 간격 (px)
-        const rightEdge = sx - iconR - 6;  // 아이콘 바로 왼쪽
+        // 아이콘 왼쪽 끝에서 역산 배치 (colGap = 열 사이 간격)
+        const colGap = 8;
+        const rightEdge = sx - iconR - 6;
 
         const pctX   = rightEdge - pctW;
-        const cntX   = pctX - gap - cntW2;
-        const labelX = cntX - gap - labelW;
+        const cntX   = pctX - colGap - cntW2;
+        const labelX = cntX - colGap - labelW;
 
         // 항목명 (회색, 11px)
         c.font=`400 11px 'Pretendard',sans-serif`;
