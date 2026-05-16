@@ -369,7 +369,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
     <div class="grid-2">
       <div class="card">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#ef4444"></div>정년퇴직 예정자 현황</div></div>
-        <div style="position:relative;height:200px"><canvas id="retireChart"></canvas></div>
+        <div id="retireChart" class="histo-wrap" style="margin-top:4px"></div>
       </div>
       <div class="card">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#6366f1"></div>단과대학별 현황</div></div>
@@ -380,11 +380,12 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
     </div>
 
     <!-- 히트맵: 연령대 x 재직기간 -->
-    <div class="grid-full">
+    <div class="grid-2" style="margin-bottom:14px">
       <div class="card">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#1365FE"></div>연령 × 재직기간 분포</div></div>
         <div id="heatmapWrap"></div>
       </div>
+      <div></div>
     </div>
 
     <footer id="footer">동아대학교 전임교원 현황 대시보드</footer>
@@ -680,9 +681,9 @@ function renderRateChart() {
   if (charts.rate) charts.rate.destroy();
 
   const grad = ctx.createLinearGradient(0, 0, 0, 250);
-  grad.addColorStop(0, 'rgba(19,101,254,0.25)');
-  grad.addColorStop(0.6, 'rgba(19,101,254,0.08)');
-  grad.addColorStop(1, 'rgba(19,101,254,0)');
+  grad.addColorStop(0, 'rgba(19,101,254,0.5)');
+  grad.addColorStop(0.5, 'rgba(19,101,254,0.2)');
+  grad.addColorStop(1, 'rgba(19,101,254,0.02)');
 
   const datasets = [{
     label: '의학계열 제외',
@@ -868,68 +869,37 @@ function renderHisto(cid, dataObj, colors, total) {
   }).join('');
 }
 
-// RETIRE (5개년 가로막대)
+// RETIRE (5개년 histo-row 스타일)
 function renderRetire(s){
   const yr=parseInt(currentYear);
   const mk=currentMedical==='include'?'include':'exclude';
   const trends=DB.retire_trends?.[currentYear]?.[mk]||{};
+  const total=s.total||1;
 
-  const labels=[], values=[], colors=[];
+  const items=[];
   const baseColors=['#1365FE','#3B82F6','#60A5FA','#93C5FD','#BFDBFE'];
   for(let i=0;i<5;i++){
     const y=yr+i;
-    labels.push(`${y}학년도`);
-    values.push(trends[String(y)]||0);
-    colors.push(baseColors[i]);
+    items.push({label:`${y}학년도`, value:trends[String(y)]||0, color:baseColors[i]});
   }
+  const max=Math.max(...items.map(it=>it.value),1);
 
-  const ctx=document.getElementById('retireChart').getContext('2d');
-  if(charts.retire)charts.retire.destroy();
-  charts.retire=new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels,
-      datasets:[{
-        data:values,
-        backgroundColor:colors,
-        borderRadius:5,
-        borderWidth:0,
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      indexAxis:'y',
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:'#fff',borderColor:'#e5eaf5',borderWidth:1,
-          titleColor:'#111',bodyColor:'#6b7280',
-          callbacks:{label:c=>` ${c.parsed.x}명`}
-        }
-      },
-      scales:{
-        x:{grid:{color:GRID},ticks:{display:false},beginAtZero:true},
-        y:{grid:{display:false},ticks:{color:'#374151',font:{size:11}},reverse:true}
-      }
-    },
-    plugins:[{
-      id:'retireLabels',
-      afterDatasetsDraw(chart){
-        const{ctx,data}=chart;
-        chart.getDatasetMeta(0).data.forEach((bar,i)=>{
-          const v=data.datasets[0].data[i];
-          if(!v)return;
-          ctx.save();
-          ctx.font='bold 12px "Pretendard",sans-serif';
-          ctx.fillStyle='#111827';
-          ctx.textAlign='left';
-          ctx.textBaseline='middle';
-          ctx.fillText(v+'명', bar.x+6, bar.y);
-          ctx.restore();
-        });
-      }
-    }]
-  });
+  // histo-row 스타일로 렌더링
+  const html=items.map(it=>{
+    const barPct=(it.value/max*100).toFixed(1);
+    const ratePct=(it.value/total*100).toFixed(2);
+    return `<div class="histo-row">
+      <div class="histo-lbl">${it.label}</div>
+      <div class="bar-bg"><div class="bar-fill" style="background:${it.color}" data-target="${barPct}"></div></div>
+      <span class="histo-cnt">${it.value}명</span>
+      <span class="histo-pct">(${ratePct}%)</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('retireChart').innerHTML=`<div style="display:flex;flex-direction:column;gap:6px">${html}</div>`;
+
+  // Chart.js 인스턴스 제거 (더 이상 canvas 불필요)
+  if(charts.retire){charts.retire.destroy();charts.retire=null;}
 }
 
 // HEATMAP (가로=연령대, 세로=재직기간)
@@ -983,7 +953,7 @@ function renderHeatmap(s) {
 
   html+='</tbody></table></div>';
 
-  html+=`<div style="display:flex;align-items:center;gap:6px;margin-top:10px;justify-content:flex-end;font-size:11px;color:#9ca3af">
+  html+=`<div style="display:flex;align-items:center;gap:6px;margin-top:10px;justify-content:flex-start;font-size:11px;color:#9ca3af">
     <span>적음</span>
     ${[0.1,0.3,0.5,0.7,0.9].map(r=>`<div style="width:20px;height:12px;border-radius:3px;background:rgba(19,101,254,${0.15+r*0.85})"></div>`).join('')}
     <span>많음</span>
@@ -998,16 +968,17 @@ function renderCollege(s){
   if(!Object.keys(colleges).length){document.getElementById('collegeTable').innerHTML='<tbody><tr><td colspan="4" style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">해당 데이터 없음</td></tr></tbody>';return;}
   const sorted=Object.entries(colleges).sort((a,b)=>b[1]-a[1]).slice(0,20);
   const max=sorted[0]?.[1]||1;
-  document.getElementById('collegeTable').innerHTML=`<tbody>${sorted.map(([name,cnt])=>{
+  const collegeRows = sorted.map(([name,cnt])=>{
     const pct=(cnt/total*100).toFixed(1);
     const barPct=(cnt/max*100).toFixed(1);
-    return `<tr>
-      <td style="font-size:11px;color:#9ca3af;text-align:right;padding:4px 6px;white-space:nowrap">${name}</td>
-      <td style="padding:4px 4px"><div class="bar-bg"><div class="bar-fill" style="background:#1365FE" data-target="${barPct}"></div></div></td>
-      <td style="font-size:12px;font-weight:700;color:#111827;text-align:right;padding:4px 4px;white-space:nowrap">${cnt}명</td>
-      <td style="font-size:11px;color:#9ca3af;text-align:right;padding:4px 4px;white-space:nowrap">(${pct}%)</td>
-    </tr>`;
-  }).join('')}</tbody>`;
+    return `<div class="histo-row">
+      <div class="histo-lbl">${name}</div>
+      <div class="bar-bg"><div class="bar-fill" style="background:#1365FE" data-target="${barPct}"></div></div>
+      <span class="histo-cnt">${cnt}명</span>
+      <span class="histo-pct">(${pct}%)</span>
+    </div>`;
+  }).join('');
+  document.getElementById('collegeTable').innerHTML = `<div style="display:flex;flex-direction:column;gap:6px">${collegeRows}</div>`;
 
 }
 
