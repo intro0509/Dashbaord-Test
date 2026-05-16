@@ -119,7 +119,7 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .retire-bar{height:100%;border-radius:3px;transition:width 1s ease;width:0}
 
 /* COLLEGE */
-.college-scroll{height:280px;overflow:hidden;position:relative}
+.college-scroll{height:360px;overflow:hidden;position:relative}
 .college-table{width:100%;border-collapse:collapse;font-size:12px}
 .college-table th{text-align:left;padding:6px 8px;color:#9ca3af;font-weight:500;border-bottom:1px solid #f3f4f6;font-size:11px}
 .college-table td{padding:7px 8px;border-bottom:1px solid #f9fafb;color:#374151}
@@ -1221,11 +1221,17 @@ function renderCollege(s){
   const sorted=Object.entries(colleges).sort((a,b)=>b[1]-a[1]).slice(0,20);
   if(!sorted.length){el.innerHTML='<p style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">데이터 없음</p>';return;}
 
-  const W=el.offsetWidth||400, H=280;
+  const W=el.offsetWidth||400, H=360;
   const palette=['#1365FE','#1e6fff','#2979ff','#3d87ff','#5496ff','#6ba4ff','#82b3ff','#99c1ff','#b0d0ff','#c7dfff',
                  '#deedff','#1a5cd4','#1451b8','#0e469d','#083b81','#023066','#1565C0','#1976D2','#1E88E5','#2196F3'];
 
-  const data=sorted.map(([name,cnt])=>({name,cnt,pct:(cnt/total*100).toFixed(1),v:cnt}));
+  // 로그 스케일 적용으로 길쭉함 방지 (최소값 보정)
+  const minCnt=sorted[sorted.length-1]?.[1]||1;
+  const data=sorted.map(([name,cnt])=>({
+    name, cnt,
+    pct:(cnt/total*100).toFixed(1),
+    v: Math.log(cnt/minCnt+1)+0.5  // 로그 스케일 (최소 0.5 보장)
+  }));
   const tiles=squarify(data,0,0,W,H);
 
   el.style.position='relative';
