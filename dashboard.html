@@ -105,8 +105,8 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .histo-wrap{display:flex;flex-direction:column;gap:6px}
 .histo-row{display:grid;grid-template-columns:72px 1fr 52px 56px;align-items:center;gap:6px;min-height:26px}
 .histo-lbl{font-size:11px;color:#9ca3af;text-align:right;white-space:nowrap}
-.bar-bg{height:18px;background:#f0f4ff;border-radius:9px;overflow:hidden}
-.bar-fill{height:100%;border-radius:9px;transition:width 1s ease;width:0%}
+.bar-bg{height:15px;background:#f0f4ff;border-radius:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:8px;transition:width 1s ease;width:0%}
 .histo-cnt{font-size:12px;font-weight:700;color:#111827;text-align:right;white-space:nowrap}
 .histo-pct{font-size:11px;color:#9ca3af;text-align:right;white-space:nowrap}
 
@@ -126,8 +126,8 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .college-table tr:last-child td{border-bottom:none}
 .col-num{font-weight:700;color:#111827;text-align:right}
 .col-pct{color:#9ca3af;font-size:11px;text-align:right}
-.col-bar-bg{height:5px;background:#f0f4ff;border-radius:3px;overflow:hidden;width:80px}
-.col-bar{height:100%;background:#1365FE;border-radius:3px;transition:width 1s ease}
+.col-bar-bg{height:15px;background:#f0f4ff;border-radius:8px;overflow:hidden;width:80px}
+.col-bar{height:100%;background:#1365FE;border-radius:8px;transition:width 1s ease}
 
 /* LOADING */
 .loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:14px}
@@ -986,27 +986,24 @@ function renderHisto(cid, dataObj, colors, total) {
       const cx = W / 2;
       const cy = H / 2;
 
-      // 모든 항목이 반드시 표시되도록 n 기준으로 arcGap·outerR 계산
-      const margin = 8; // 최소 안쪽 반지름
-      // outerR: 전체 높이/너비 안에서 n개 항목이 다 들어오도록 자동 산출
+      // 모든 항목이 반드시 표시 — n 기준으로 arcGap·outerR 자동 계산
+      const margin = 8;
       const maxR = Math.min(W, H) / 2 * 0.90;
-      // arcGap: (outerR - margin) / (n-1) 로 항목 간격 균등 배분
       const arcGap = n > 1 ? (maxR - margin) / (n - 1) : maxR;
       const outerR = maxR;
+      // 재직기간·연령 모두 동일 두께: n에 무관하게 고정 비율
       const barH = Math.min(arcGap * 0.55, 16);
       const prog = charts['_anim_'+cid] || 1;
 
-      // 레이블 고정 탭 열 (canvas 절대좌표 기준)
-      // 차트 왼쪽 끝(cx - outerR) 바로 왼쪽까지 레이블 영역
-      const labelRight = cx - outerR - 6;  // 레이블 전체 오른쪽 한계
-      const col3Right  = labelRight;        // 비율 오른쪽 끝
-      const col2Right  = col3Right - 48;   // 인원 오른쪽 끝
-      const col1Left   = 6;                // 항목명 왼쪽 시작
+      // 레이블 고정 탭 열 — 오른쪽 한계를 cx(12시 방향 x)로 설정
+      const labelRight = cx - 6;   // 12시 방향 바로 왼쪽
+      const col3Right  = labelRight;
+      const col2Right  = col3Right - 52;
+      const col1Left   = 6;
 
       c.save();
       labels.forEach((label, i) => {
         const ratio = values[i] / max;
-        // 바깥에서 안쪽 순서로 반지름 계산 (모든 항목 보장)
         const r = outerR - (i * arcGap);
         const startAngle = -Math.PI / 2;
         const animatedAngle = startAngle + (maxAngle * ratio * prog);
@@ -1018,7 +1015,7 @@ function renderHisto(cid, dataObj, colors, total) {
         c.arc(cx, cy, r, startAngle, startAngle + maxAngle);
         c.strokeStyle = '#f0f4ff'; c.lineWidth = barH; c.lineCap = 'round'; c.stroke();
 
-        // 데이터 호 (값이 0이면 배경만)
+        // 데이터 호 (값 0이면 배경만)
         if(ratio > 0){
           c.beginPath();
           c.arc(cx, cy, r, startAngle, animatedAngle);
