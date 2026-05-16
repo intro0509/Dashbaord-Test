@@ -119,7 +119,7 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .retire-bar{height:100%;border-radius:3px;transition:width 1s ease;width:0}
 
 /* COLLEGE */
-.college-scroll{height:360px;overflow:hidden;position:relative}
+.college-scroll{max-height:320px;overflow-y:auto}
 .college-table{width:100%;border-collapse:collapse;font-size:12px}
 .college-table th{text-align:left;padding:6px 8px;color:#9ca3af;font-weight:500;border-bottom:1px solid #f3f4f6;font-size:11px}
 .college-table td{padding:7px 8px;border-bottom:1px solid #f9fafb;color:#374151}
@@ -862,11 +862,13 @@ function renderStkBar(cid,lid,allLbls,allVals,allClrs,s,filterType){
   if(charts[cid])charts[cid].destroy();
   const stkPlugin={id:'stkRound_'+cid,afterDraw(chart){
     const{ctx:c,chartArea:{left,top,right,bottom}}=chart;
-    const barH=(bottom-top)*0.82;
-    const cy=(top+bottom)/2;
-    const avail=(right-left)*0.92;
+    const barH=Math.min((bottom-top)*0.55, 28); // 막대 두께 제한
+    const cy=(top+bottom)/2; // 정확한 가운데
+    const totalW=(right-left);
+    const avail=totalW*0.92;
+    const startX=left+(totalW-avail)/2; // 가운데 정렬
     const prog=charts['_sanim_'+cid]||1;
-    let x=left;
+    let x=startX;
     c.clearRect(left,top,right-left,bottom-top);
     labels.forEach((l,i)=>{
       if(!values[i]){return;}
@@ -958,7 +960,6 @@ function renderHisto(cid, dataObj, colors, total) {
   // 커스텀 플러그인으로 직접 그리기
   const maxAngle = Math.PI * 3 / 2; // 270°
 
-  // 애니메이션 상태
   if(!charts['_anim_'+cid]) charts['_anim_'+cid]=0;
   let animStart=null;
   const animDuration=900;
@@ -967,23 +968,17 @@ function renderHisto(cid, dataObj, colors, total) {
     id:'radialBar_'+cid,
     afterDraw(chart){
       const{ctx:c,chartArea:{left,top,right,bottom}}=chart;
-      const cx=(left+right)/2, cy=(top+bottom)/2;
-      const outerR=Math.min((right-left),(bottom-top))/2*0.72;
+      const W=right-left, H=bottom-top;
+      // 왼쪽 60% 레이블, 오른쪽 40% 차트
+      const chartZoneW=W*0.48;
+      const cx=right-chartZoneW/2;
+      const cy=(top+bottom)/2;
+      const outerR=Math.min(chartZoneW, H)/2*0.88;
       const barH=Math.min(outerR/Math.min(n,5)*0.65, 18);
       const fixedN=Math.max(n,7);
       const gap=outerR/fixedN*1.35;
       const prog=charts['_anim_'+cid]||1;
       const iconR=barH/2+1;
-      const maxR=outerR;
-
-      // tabular 정렬용 열 너비 계산
-      c.font=`500 11px 'Pretendard',sans-serif`;
-      const labelW=Math.max(...labels.map(l=>c.measureText(l).width));
-      const cntW=Math.max(...values.map(v=>c.measureText(`${v}명`).width));
-      const pctArr=values.map((_,i)=>tot>0?(values[i]/tot*100).toFixed(1)+'%':'0.0%');
-      const pctW=Math.max(...pctArr.map(p=>c.measureText(p).width));
-      const colGap=8;
-      const fixedRx=cx-maxR-iconR-14;
 
       c.save();
       labels.forEach((label,i)=>{
@@ -993,9 +988,9 @@ function renderHisto(cid, dataObj, colors, total) {
         const startAngle=-Math.PI/2;
         const animatedAngle=startAngle+(maxAngle*ratio*prog);
         const color=colors[i%colors.length];
-        const pct=pctArr[i];
+        const pct=tot>0?(values[i]/tot*100).toFixed(1):'0.0';
 
-        // 배경 호 270°
+        // 배경 호
         c.beginPath();
         c.arc(cx,cy,r,startAngle,startAngle+maxAngle);
         c.strokeStyle='#f0f4ff';
@@ -1027,39 +1022,37 @@ function renderHisto(cid, dataObj, colors, total) {
         c.textAlign='center'; c.textBaseline='middle';
         c.fillText('→',sx,sy);
 
-        // 레이블 tabular 정렬 (우측→좌측)
+        // 레이블: 해당 항목 sy 높이에 맞춰 왼쪽에 배치
         c.globalAlpha=Math.min(prog*1.5,1);
-        c.textBaseline='middle';
+        const lx=left; // 왼쪽 시작
+        const lw=sx-iconR-lx-8; // 사용 가능 너비
 
-        // 비율 (우측 끝)
-        c.font=`500 11px 'Pretendard',sans-serif`;
-        c.fillStyle='#9ca3af'; c.textAlign='right';
-        c.fillText(pct, fixedRx, sy);
-
-        // 구분자
-        c.fillStyle='#d1d5db';
-        c.fillText(' /', fixedRx-pctW, sy);
-
-        // 인원수
-        c.font=`700 11px 'Pretendard',sans-serif`;
-        c.fillStyle='#111827';
-        c.fillText(`${values[i]}명`, fixedRx-pctW-colGap-cntW, sy);
-
-        // 구분자
-        c.font=`500 11px 'Pretendard',sans-serif`;
-        c.fillStyle='#d1d5db';
-        c.fillText(' /', fixedRx-pctW-colGap-cntW-colGap, sy);
-
-        // 항목명 (좌측)
+        // 항목명 (회색, 14px, 400)
+        c.font=`400 11px 'Pretendard',sans-serif`;
         c.fillStyle='#6b7280';
-        c.fillText(label, fixedRx-pctW-colGap-cntW-colGap*2-labelW, sy);
+        c.textAlign='left';
+        c.textBaseline='middle';
+        c.fillText(label, lx, sy-7);
+
+        // 인원수 (굵은 검정, 13px, 700)
+        c.font=`700 13px 'Pretendard',sans-serif`;
+        c.fillStyle='#111827';
+        c.fillText(`${values[i]}명`, lx, sy+7);
+
+        // 비율 (연한 회색, 11px, 400)
+        c.font=`400 11px 'Pretendard',sans-serif`;
+        c.fillStyle='#9ca3af';
+        // 인원수 너비 계산 후 비율 배치
+        c.font=`700 13px 'Pretendard',sans-serif`;
+        const cntW=c.measureText(`${values[i]}명`).width;
+        c.font=`400 11px 'Pretendard',sans-serif`;
+        c.fillText(` (${pct}%)`, lx+cntW, sy+7);
 
         c.globalAlpha=1;
       });
       c.restore();
     }
-  };
-
+  }
   // 애니메이션 실행 함수
   function runRadialAnim(chart){
     animStart=null;
@@ -1210,151 +1203,25 @@ function renderHeatmap(s) {
   }
 }
 
-// COLLEGE TREEMAP - 정확한 Squarified 알고리즘
-function squarify(items, x, y, w, h) {
-  const result = [];
-  const total = items.reduce((s, d) => s + d.v, 0);
-  if (!total || !w || !h) return result;
-
-  const totalArea = w * h;
-  const nodes = items.map(d => ({...d, area: (d.v / total) * totalArea}));
-
-  function worstRatio(row, len) {
-    const s = row.reduce((a, d) => a + d.area, 0);
-    const maxA = Math.max(...row.map(d => d.area));
-    const minA = Math.min(...row.map(d => d.area));
-    if (!s) return Infinity;
-    return Math.max(len*len*maxA/(s*s), s*s/(len*len*minA));
-  }
-
-  function layoutRow(row, rx, ry, rw, rh) {
-    const rowArea = row.reduce((a, d) => a + d.area, 0);
-    const horiz = rw >= rh;
-    let pos = horiz ? ry : rx;
-    row.forEach(d => {
-      const ratio = d.area / rowArea;
-      if (horiz) {
-        const cw = rowArea / rh;
-        const ch = ratio * rh;
-        result.push({...d, x:rx, y:pos, w:cw, h:ch});
-        pos += ch;
-      } else {
-        const cw = ratio * rw;
-        const ch = rowArea / rw;
-        result.push({...d, x:pos, y:ry, w:cw, h:ch});
-        pos += cw;
-      }
-    });
-  }
-
-  function tile(nodes, rx, ry, rw, rh) {
-    if (!nodes.length || rw <= 0 || rh <= 0) return;
-    if (nodes.length === 1) {
-      result.push({...nodes[0], x:rx, y:ry, w:rw, h:rh});
-      return;
-    }
-    const horiz = rw >= rh;
-    const len = horiz ? rh : rw;
-    let row = [];
-    let i = 0;
-    while (i < nodes.length) {
-      const next = [...row, nodes[i]];
-      if (!row.length || worstRatio(row, len) >= worstRatio(next, len)) {
-        row = next; i++;
-      } else break;
-    }
-    const rowArea = row.reduce((a, d) => a + d.area, 0);
-    if (horiz) {
-      const rowW = rowArea / rh;
-      layoutRow(row, rx, ry, rowW, rh);
-      tile(nodes.slice(i), rx + rowW, ry, rw - rowW, rh);
-    } else {
-      const rowH = rowArea / rw;
-      layoutRow(row, rx, ry, rw, rowH);
-      tile(nodes.slice(i), rx, ry + rowH, rw, rh - rowH);
-    }
-  }
-
-  tile(nodes, x, y, w, h);
-  return result;
-}
-
+// COLLEGE
 function renderCollege(s){
   const colleges=s.colleges||{}, total=s.total||1;
   const el=document.getElementById('collegeTable');
-  const sorted=Object.entries(colleges).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const sorted=Object.entries(colleges).sort((a,b)=>b[1]-a[1]).slice(0,20);
   if(!sorted.length){el.innerHTML='<p style="color:#9ca3af;font-size:12px;padding:20px;text-align:center">데이터 없음</p>';return;}
-
-  const W=el.offsetWidth||400, H=360;
-  const palette=['#1365FE','#1e6fff','#2979ff','#3d87ff','#5496ff','#6ba4ff','#82b3ff','#99c1ff','#b0d0ff','#c7dfff',
-                 '#deedff','#1a5cd4','#1451b8','#0e469d','#083b81','#023066','#1565C0','#1976D2','#1E88E5','#2196F3'];
-
-  // 로그 스케일 적용으로 길쭉함 방지 (최소값 보정)
-  const minCnt=sorted[sorted.length-1]?.[1]||1;
-  const data=sorted.map(([name,cnt])=>({
-    name, cnt,
-    pct:(cnt/total*100).toFixed(1),
-    v: Math.log(cnt/minCnt+1)+0.5  // 로그 스케일 (최소 0.5 보장)
-  }));
-  const tiles=squarify(data,0,0,W,H);
-
-  el.style.position='relative';
-  el.style.height=H+'px';
-  el.style.overflow='hidden';
-
-  const maxCnt=data[0]?.cnt||1;
-  // 큰 셀부터 순서대로 등장 (면적 기준 정렬)
-  const tilesWithIdx=tiles.map((t,i)=>({...t,_i:i})).sort((a,b)=>b.w*b.h-a.w*a.h);
-  el.innerHTML=tilesWithIdx.map((t,renderI)=>{
-    const i=t._i;
-    const delay=renderI*40;
-    const fs=t.w>80&&t.h>50?11:t.w>50&&t.h>35?10:9;
-    const showCnt=t.w>60&&t.h>45;
-    const showPct=t.w>60&&t.h>60;
-    // 인원수 비례 색상 농도 (최대=진한 파랑, 최소=매우 연한 파랑)
-    const ratio=t.cnt/maxCnt;
-    // 최소 0.08, 최대 1.0으로 균등 분포
-    const minOpacity=0.10, maxOpacity=1.0;
-    const opacity=minOpacity+(maxOpacity-minOpacity)*ratio;
-    const bg=`rgba(19,101,254,${opacity.toFixed(3)})`;
-    // 농도 0.45 이하면 파랑 텍스트, 이상이면 흰색
-    const textCol=ratio>0.45?'#fff':'#1365FE';
-    const textColSub=ratio>0.45?'rgba(255,255,255,0.85)':'rgba(19,101,254,0.7)';
-    return `<div style="
-      position:absolute;
-      left:${t.x+1}px;top:${t.y+1}px;
-      width:${t.w-2}px;height:${t.h-2}px;
-      background:${bg};
-      border-radius:6px;
-      display:flex;flex-direction:column;
-      align-items:center;justify-content:center;
-      overflow:hidden;cursor:default;
-      animation:fadeIn 0.4s ease both;
-      animation-delay:${delay}ms;
-      opacity:0;
-      transition:filter .2s;
-      " onmouseover="this.style.filter='brightness(0.95)'"
-         onmouseout="this.style.filter=''"
-         title="">
-      <div style="font-size:${fs}px;font-weight:700;color:${textCol};text-align:center;padding:2px 4px;line-height:1.3;word-break:keep-all">${t.name}</div>
-      ${showCnt?`<div style="font-size:${fs+1}px;font-weight:800;color:${textCol}">${t.cnt}명</div>`:''}
-      ${showPct?`<div style="font-size:${fs-1}px;color:${textColSub}">(${t.pct}%)</div>`:''}
+  const max=sorted[0]?.[1]||1;
+  const html=sorted.map(([name,cnt])=>{
+    const pct=(cnt/total*100).toFixed(1);
+    const barPct=(cnt/max*100).toFixed(1);
+    return `<div class="histo-row">
+      <div class="histo-lbl">${name}</div>
+      <div class="bar-bg"><div class="bar-fill" style="background:#1365FE" data-target="${barPct}"></div></div>
+      <span class="histo-cnt">${cnt}명</span>
+      <span class="histo-pct">(${pct}%)</span>
     </div>`;
-  }).join('');;
-
+  }).join('');
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px">${html}</div>`;
+  animateBars();
 }
 
-function animateBars(){
-  requestAnimationFrame(()=>{
-    setTimeout(()=>{
-      document.querySelectorAll('.bar-fill[data-target]').forEach(el=>{
-        el.style.width=el.dataset.target+'%';
-      });
-    },50);
-  });
-}
 
-loadData();
-</script>
-</body>
-</html>
