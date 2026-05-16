@@ -149,6 +149,9 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .kpi-card:nth-child(1){animation-delay:.05s}.kpi-card:nth-child(2){animation-delay:.1s}
 .kpi-card:nth-child(3){animation-delay:.15s}.kpi-card:nth-child(4){animation-delay:.2s}
 
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes growBar{from{width:0}to{width:var(--w,100%)}}
+.chart-animate{animation:fadeIn .6s ease both}
 @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr 1fr}}
 
@@ -635,6 +638,11 @@ async function renderAll() {
   document.getElementById('filterTotal').textContent = s.total.toLocaleString()+'명';
   animateBars();
   document.getElementById('footer').textContent = `동아대학교 전임교원 현황 대시보드 · ${currentYear}학년도 기준 · 업데이트: ${DB.meta.updated}`;
+  // 차트 fade-in 애니메이션
+  ['tenureHisto','ageHisto','heatmapWrap','collegeTable'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.style.animation='none';el.offsetHeight;el.style.animation='fadeIn .6s ease both';}
+  });
 }
 
 // KPI
@@ -890,47 +898,8 @@ function renderStkBar(cid,lid,allLbls,allVals,allClrs,s,filterType){
       x+=w;
     });
   }};
-  // hover 툴팁 (도넛 차트 스타일)
-  const tooltipPlugin={id:'stkTooltip_'+cid,afterDraw(chart){
-    const{ctx:c,chartArea:{left,top,right,bottom}}=chart;
-    const tip=chart._stkTip;
-    if(!tip)return;
-    const pad=10, bh=32, titleH=14, bodyH=16;
-    c.save();
-    c.font=`600 12px 'Pretendard',sans-serif`;
-    const tw=Math.max(c.measureText(tip.label).width, c.measureText(tip.body).width);
-    const bw=tw+pad*2;
-    let bx=tip.x-bw/2, by=tip.y-bh-12;
-    if(bx<0)bx=0;
-    if(bx+bw>chart.width)bx=chart.width-bw;
-    if(by<0)by=tip.y+8;
-    // 배경
-    c.fillStyle='#fff';
-    c.strokeStyle='#e5eaf5';
-    c.lineWidth=1;
-    c.shadowColor='rgba(0,0,0,0.1)';
-    c.shadowBlur=10;
-    c.beginPath();
-    if(c.roundRect)c.roundRect(bx,by,bw,bh+titleH,6);
-    else c.rect(bx,by,bw,bh+titleH);
-    c.fill();c.stroke();
-    c.shadowBlur=0;
-    // 제목
-    c.font=`600 11px 'Pretendard',sans-serif`;
-    c.fillStyle='#111827';
-    c.textAlign='left';
-    c.textBaseline='top';
-    c.fillText(tip.label,bx+pad,by+8);
-    // 구분선
-    c.strokeStyle='#f3f4f6';
-    c.lineWidth=1;
-    c.beginPath();c.moveTo(bx+1,by+titleH+8);c.lineTo(bx+bw-1,by+titleH+8);c.stroke();
-    // 본문
-    c.font=`500 11px 'Pretendard',sans-serif`;
-    c.fillStyle='#6b7280';
-    c.fillText(tip.body,bx+pad,by+titleH+12);
-    c.restore();
-  }};
+  // 툴팁 없음
+  const tooltipPlugin={id:'stkTooltip_'+cid};
 
   const chartInst=new Chart(ctx,{
     type:'bar',data:{labels:[''],datasets:[{data:[tot],backgroundColor:'transparent',borderWidth:0}]},
@@ -940,31 +909,7 @@ function renderStkBar(cid,lid,allLbls,allVals,allClrs,s,filterType){
     plugins:[stkPlugin,tooltipPlugin]});
   charts[cid]=chartInst;
 
-  // 마우스 이벤트
-  const canvas=ctx.canvas;
-  canvas.onmousemove=function(e){
-    const rect=canvas.getBoundingClientRect();
-    const mx=e.clientX-rect.left;
-    const ca=chartInst.chartArea;
-    if(!ca)return;
-    const cy2=(ca.top+ca.bottom)/2;
-    const barH2=(ca.bottom-ca.top)*0.82;
-    if(Math.abs(e.clientY-rect.top-cy2)>barH2/2){chartInst._stkTip=null;chartInst.update('none');return;}
-    const avail=(ca.right-ca.left)*0.92;
-    let x=ca.left;
-    for(let i=0;i<labels.length;i++){
-      const w=tot>0?(values[i]/tot)*avail:0;
-      if(mx>=x&&mx<=x+w){
-        const pct=bt>0?(values[i]/bt*100).toFixed(2):'0.00';
-        chartInst._stkTip={x:x+w/2,y:cy2-barH2/2,label:labels[i],body:`${values[i]}명 (${pct}%)`};
-        chartInst.update('none');
-        return;
-      }
-      x+=w;
-    }
-    chartInst._stkTip=null;chartInst.update('none');
-  };
-  canvas.onmouseleave=function(){chartInst._stkTip=null;chartInst.update('none');};
+
 
   document.getElementById(lid).innerHTML = `<div style="display:grid;grid-template-columns:repeat(${labels.length},1fr);gap:0;margin-top:12px">
     ${labels.map((l,i)=>{
@@ -1004,8 +949,8 @@ function renderHisto(cid, dataObj, colors, total) {
       const cx=(left+right)/2, cy=(top+bottom)/2;
       const outerR=Math.min((right-left),(bottom-top))/2*0.72;
       const barH=Math.min(outerR/Math.min(n,5)*0.65, 18); // 최대 5개 기준 굵기
-      const fixedN=Math.max(n,7); // 재직기간(7)/연령(5) 간격 통일
-      const gap=outerR/fixedN;
+      const fixedN=Math.max(n,7);
+      const gap=outerR/fixedN*1.35; // 항목 간 여백 넓히기
 
       c.save();
 
@@ -1056,13 +1001,15 @@ function renderHisto(cid, dataObj, colors, total) {
         c.fillText('→',sx,sy);
 
         // 레이블: 시작점 좌측에 한 줄로 표시 (▼ 5년 / 00명 / 0.0%)
-        const lx=sx-iconR-8;
+        // 레이블 왼쪽 정렬: 가장 큰 호(i=0)의 시작점 기준
+        const maxR=outerR; // 최대 반지름
+        const fixedLx=cx-maxR-iconR-12; // 고정 x 위치
         const fullLbl=`${label}  /  ${values[i]}명  /  ${pct}%`;
         c.font=`500 11px 'Pretendard',sans-serif`;
         c.fillStyle='#374151';
         c.textAlign='right';
         c.textBaseline='middle';
-        c.fillText(fullLbl, lx, sy);
+        c.fillText(fullLbl, fixedLx, sy);
       });
       c.restore();
     }
@@ -1155,7 +1102,7 @@ function renderHeatmap(s) {
       const pct=total>0?(v/total*100).toFixed(1):'0.0';
       const bg=cellColor(v), tc=textColor(v);
       const agLbl=AGE_LBL[ag]||ag, tLbl=TEN_LBL[t]||t;
-      html+=`<td class="heatmap-cell" style="background:${bg};color:${tc};width:40px" title="${agLbl} × ${tLbl}: ${v}명 (${pct}%)">
+      html+=`<td class="heatmap-cell" style="background:${bg};color:${tc};width:40px" title="">
         ${v?`<div class="cell-cnt">${v}명</div><div class="cell-pct">(${pct}%)</div>`:''}
       </td>`;
     });
@@ -1310,7 +1257,7 @@ function renderCollege(s){
       transition:filter .2s;
       " onmouseover="this.style.filter='brightness(0.95)'"
          onmouseout="this.style.filter=''"
-         title="${t.name}&#10;${t.cnt}명 (${t.pct}%)">
+         title="">
       <div style="font-size:${fs}px;font-weight:700;color:${textCol};text-align:center;padding:2px 4px;line-height:1.3;word-break:keep-all">${t.name}</div>
       ${showCnt?`<div style="font-size:${fs+1}px;font-weight:800;color:${textCol}">${t.cnt}명</div>`:''}
       ${showPct?`<div style="font-size:${fs-1}px;color:${textColSub}">(${t.pct}%)</div>`:''}
