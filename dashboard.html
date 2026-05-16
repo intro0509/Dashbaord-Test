@@ -979,8 +979,8 @@ function renderHisto(cid, dataObj, colors, total) {
     afterDraw(chart){
       const{ctx:c,chartArea:{left,top,right,bottom}}=chart;
       const W=right-left, H=bottom-top;
-      // 왼쪽 58% 레이블, 오른쪽 42% 차트
-      const chartZoneW=W*0.42;
+      // 왼쪽 60% 레이블, 오른쪽 40% 차트
+      const chartZoneW=W*0.48;
       const cx=right-chartZoneW/2;
       const cy=(top+bottom)/2;
       const outerR=Math.min(chartZoneW, H)/2*0.88;
@@ -1032,35 +1032,47 @@ function renderHisto(cid, dataObj, colors, total) {
         c.textAlign='center'; c.textBaseline='middle';
         c.fillText('→',sx,sy);
 
-        // 레이블: 레퍼런스 기준 — 한 줄에 [항목명] [인원] [비율] 3열 탭 정렬
-        // 각 줄은 해당 호의 12시 방향 시작점(sy)에 수직 중앙 정렬
+        // 레이블: 한 줄에 [항목명] [인원] [비율] — 촘촘하게 배치, 비율이 아이콘 직전까지
         c.globalAlpha=Math.min(prog*1.5,1);
         c.textBaseline='middle';
         c.textAlign='left';
 
-        // 레이블 영역: left ~ (아이콘 왼쪽-여백)
-        const labelAreaW = sx - iconR - left - 6;
-        // 3열 고정 탭 위치 (레이블 영역 내 비율로 설정)
-        const col1x = left;                         // 항목명 시작
-        const col2x = left + labelAreaW * 0.44;     // 인원 시작
-        const col3x = left + labelAreaW * 0.72;     // 비율 시작
+        // 각 텍스트 너비를 먼저 측정해서 딱 붙여 배치
+        c.font=`400 11px 'Pretendard',sans-serif`;
+        const labelW = c.measureText(label).width;
 
-        // 열1: 항목명 (회색, 11px)
-        c.font = `400 11px 'Pretendard',sans-serif`;
-        c.fillStyle = '#6b7280';
-        c.fillText(label, col1x, sy);
+        c.font=`700 12px 'Pretendard',sans-serif`;
+        const cntTxt = `${values[i]}명`;
+        const cntW2 = c.measureText(cntTxt).width;
 
-        // 열2: 인원수 (굵은 검정, 12px)
-        c.font = `700 12px 'Pretendard',sans-serif`;
-        c.fillStyle = '#111827';
-        c.fillText(`${values[i]}명`, col2x, sy);
+        c.font=`400 11px 'Pretendard',sans-serif`;
+        const pctTxt = `(${pct}%)`;
+        const pctW = c.measureText(pctTxt).width;
 
-        // 열3: 비율 (연한 회색, 11px)
-        c.font = `400 11px 'Pretendard',sans-serif`;
-        c.fillStyle = '#9ca3af';
-        c.fillText(`(${pct}%)`, col3x, sy);
+        // 아이콘 왼쪽 끝에서 역산: 비율→인원→항목명 순으로 오른쪽 정렬
+        const gap = 8;  // 열 사이 간격 (px)
+        const rightEdge = sx - iconR - 6;  // 아이콘 바로 왼쪽
 
-        c.globalAlpha = 1;
+        const pctX   = rightEdge - pctW;
+        const cntX   = pctX - gap - cntW2;
+        const labelX = cntX - gap - labelW;
+
+        // 항목명 (회색, 11px)
+        c.font=`400 11px 'Pretendard',sans-serif`;
+        c.fillStyle='#6b7280';
+        c.fillText(label, labelX, sy);
+
+        // 인원수 (굵은 검정, 12px)
+        c.font=`700 12px 'Pretendard',sans-serif`;
+        c.fillStyle='#111827';
+        c.fillText(cntTxt, cntX, sy);
+
+        // 비율 (연한 회색, 11px)
+        c.font=`400 11px 'Pretendard',sans-serif`;
+        c.fillStyle='#9ca3af';
+        c.fillText(pctTxt, pctX, sy);
+
+        c.globalAlpha=1;
       });
       c.restore();
     }
