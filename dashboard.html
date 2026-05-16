@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>동아대학교 교원관리 시스템</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.3.0/build/chartjs-chart-treemap.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -159,7 +160,7 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .heatmap-table{border-collapse:separate;border-spacing:3px;width:auto;margin:0}
 .heatmap-table th{font-size:10px;color:#9ca3af;font-weight:500;padding:3px 6px;text-align:center;white-space:nowrap}
 .heatmap-table th.row-header{text-align:right;min-width:70px;font-size:10px}
-.heatmap-cell{border-radius:5px;width:44px;height:44px;text-align:center;vertical-align:middle;font-size:10px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
+.heatmap-cell{border-radius:5px;width:40px;height:40px;text-align:center;vertical-align:middle;font-size:10px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
 .heatmap-cell:hover{transform:scale(1.08);box-shadow:0 2px 8px rgba(19,101,254,.25);z-index:10}
 .heatmap-cell .cell-cnt{font-size:12px;font-weight:700}
 .heatmap-cell .cell-pct{font-size:10px;opacity:.8}
@@ -377,9 +378,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       </div>
       <div class="card">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#6366f1"></div>단과대학별 현황</div></div>
-        <div class="college-scroll">
-          <table class="college-table" id="collegeTable"></table>
-        </div>
+        <div style="position:relative;height:280px"><canvas id="collegeTreemap"></canvas></div>
       </div>
     </div>
 
@@ -707,9 +706,9 @@ function renderRateChart() {
 
   if (hasIncl) {
     const grad2 = ctx.createLinearGradient(0, 0, 0, 250);
-    grad2.addColorStop(0, 'rgba(156,163,175,0.5)');
-    grad2.addColorStop(0.5, 'rgba(156,163,175,0.2)');
-    grad2.addColorStop(1, 'rgba(156,163,175,0.02)');
+    grad2.addColorStop(0, 'rgba(156,163,175,0.25)');
+    grad2.addColorStop(0.5, 'rgba(156,163,175,0.1)');
+    grad2.addColorStop(1, 'rgba(156,163,175,0.01)');
     datasets.push({
       label: '의학계열 포함',
       data: valsIncl,
@@ -849,19 +848,19 @@ function renderStkBar(cid,lid,allLbls,allVals,allClrs,s,filterType){
   const ctx=document.getElementById(cid).getContext('2d');
   if(charts[cid])charts[cid].destroy();
   charts[cid]=new Chart(ctx,{
-    type:'bar',data:{labels:[''],datasets:labels.map((l,i)=>({label:l,data:[values[i]],backgroundColor:colors[i],borderWidth:0,borderRadius:i===0?4:i===labels.length-1?4:0,borderSkipped:false}))},
-    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'#e5eaf5',borderWidth:1,titleColor:'#111',bodyColor:'#6b7280',callbacks:{label:c=>{const pct=bt>0?(c.parsed.x/bt*100).toFixed(2):'0.00';return ` ${c.dataset.label}: ${c.parsed.x}명 (${pct}%)`;}}},},scales:{x:{stacked:true,display:false,max:tot},y:{stacked:true,display:false}}}
+    type:'bar',data:{labels:[''],datasets:labels.map((l,i)=>({label:l,data:[values[i]],backgroundColor:colors[i],borderWidth:0,borderRadius:4,borderSkipped:false}))},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'#e5eaf5',borderWidth:1,titleColor:'#111',bodyColor:'#6b7280',callbacks:{label:c=>{const pct=bt>0?(c.parsed.x/bt*100).toFixed(2):'0.00';return ` ${c.dataset.label}: ${c.parsed.x}명 (${pct}%)`;}}},},scales:{x:{stacked:true,display:false,max:tot*1.05},y:{stacked:true,display:false}}}
   });
-  document.getElementById(lid).innerHTML = `<div style="display:grid;grid-template-columns:repeat(${labels.length},1fr);gap:8px;margin-top:12px">
+  document.getElementById(lid).innerHTML = `<div style="display:grid;grid-template-columns:repeat(${labels.length},1fr);gap:0;margin-top:12px">
     ${labels.map((l,i)=>{
       const cnt=values[i],pct=bt>0?(cnt/bt*100).toFixed(2):'0.00';
-      return `<div style="display:flex;flex-direction:column;gap:3px">
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;text-align:center">
         <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#6b7280">
           <div style="width:10px;height:10px;border-radius:2px;background:${colors[i]};flex-shrink:0"></div>
           <span>${l}</span>
         </div>
-        <div style="font-size:15px;font-weight:700;color:#111827;padding-left:15px">${cnt}명</div>
-        <div style="font-size:12px;color:#9ca3af;padding-left:15px">${pct}%</div>
+        <div style="font-size:15px;font-weight:700;color:#111827">${cnt}명</div>
+        <div style="font-size:12px;color:#9ca3af">${pct}%</div>
       </div>`;
     }).join('')}
   </div>`;
@@ -953,7 +952,7 @@ function renderHeatmap(s) {
       const v=heatmap[ag]?.[t]||0;
       const pct=total>0?(v/total*100).toFixed(1):'0.0';
       const bg=cellColor(v), tc=textColor(v);
-      html+=`<td class="heatmap-cell" style="background:${bg};color:${tc};width:44px" title="${ag} × ${t}: ${v}명 (${pct}%)">
+      html+=`<td class="heatmap-cell" style="background:${bg};color:${tc};width:40px" title="${ag} × ${t}: ${v}명 (${pct}%)">
         ${v?`<div class="cell-cnt">${v}</div><div class="cell-pct">(${pct}%)</div>`:''}
       </td>`;
     });
@@ -963,7 +962,7 @@ function renderHeatmap(s) {
   const AGE_LBL={'30세 미만':'▼ 30세','30세-40세':'▼ 40세','40세-50세':'▼ 50세','50세-60세':'▼ 60세','60세 초과':'▲ 60세'};
   html+=`<tr>
     <th class="row-header" style="min-width:70px"></th>
-    ${AGE.map(a=>`<th style="min-width:44px;width:44px;font-size:10px;color:#9ca3af;font-weight:500;padding:4px 2px;text-align:center;white-space:nowrap">${AGE_LBL[a]||a}</th>`).join('')}
+    ${AGE.map(a=>`<th style="min-width:40px;width:40px;font-size:10px;color:#9ca3af;font-weight:500;padding:4px 2px;text-align:center;white-space:nowrap">${AGE_LBL[a]||a}</th>`).join('')}
   </tr>`;
 
   html+='</tbody></table></div>';
@@ -991,23 +990,77 @@ function renderHeatmap(s) {
   }
 }
 
-// COLLEGE
+// COLLEGE TREEMAP
 function renderCollege(s){
   const colleges=s.colleges||{}, total=s.total||1;
-  if(!Object.keys(colleges).length){document.getElementById('collegeTable').innerHTML='<tbody><tr><td colspan="4" style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">해당 데이터 없음</td></tr></tbody>';return;}
   const sorted=Object.entries(colleges).sort((a,b)=>b[1]-a[1]).slice(0,20);
-  const max=sorted[0]?.[1]||1;
-  const collegeRows = sorted.map(([name,cnt])=>{
-    const pct=(cnt/total*100).toFixed(1);
-    const barPct=(cnt/max*100).toFixed(1);
-    return `<div class="histo-row">
-      <div class="histo-lbl">${name}</div>
-      <div class="bar-bg"><div class="bar-fill" style="background:#1365FE" data-target="${barPct}"></div></div>
-      <span class="histo-cnt">${cnt}명</span>
-      <span class="histo-pct">(${pct}%)</span>
-    </div>`;
-  }).join('');
-  document.getElementById('collegeTable').innerHTML = `<div style="display:flex;flex-direction:column;gap:6px">${collegeRows}</div>`;
+  if(!sorted.length) return;
+
+  const ctx=document.getElementById('collegeTreemap').getContext('2d');
+  if(charts.college) charts.college.destroy();
+
+  // 파란 계열 색상 팔레트
+  const palette=['#1365FE','#1a6fff','#2979ff','#4285ff','#5c96ff','#75a8ff','#8ebaff','#a7ccff','#c0deff','#d9f0ff'];
+
+  const treeData=sorted.map(([name,cnt],i)=>({
+    name, cnt, pct:(cnt/total*100).toFixed(1), v:cnt
+  }));
+
+  charts.college=new Chart(ctx,{
+    type:'treemap',
+    data:{
+      datasets:[{
+        label:'단과대학',
+        tree: treeData,
+        key:'v',
+        backgroundColor(ctx){
+          if(ctx.type!=='data') return 'transparent';
+          return palette[ctx.dataIndex % palette.length];
+        },
+        borderColor:'#fff',
+        borderWidth:2,
+        borderRadius:6,
+        labels:{
+          display:true,
+          formatter(ctx){
+            if(ctx.type!=='data') return '';
+            const d=ctx.raw._data;
+            return [d.name, `${d.cnt}명`, `(${d.pct}%)`];
+          },
+          color:'#fff',
+          font:[
+            {size:11,weight:'600',family:"'Pretendard',sans-serif"},
+            {size:12,weight:'700',family:"'Pretendard',sans-serif"},
+            {size:10,family:"'Pretendard',sans-serif"},
+          ],
+          position:'middle',
+          align:'center',
+          overflow:'fit',
+        }
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#fff',
+          borderColor:'#e5eaf5',
+          borderWidth:1,
+          titleColor:'#111827',
+          bodyColor:'#6b7280',
+          callbacks:{
+            title(items){return items[0]?.raw?._data?.name||'';},
+            label(item){
+              const d=item.raw._data;
+              return [`${d.cnt}명 (${d.pct}%)`];
+            }
+          }
+        }
+      }
+    }
+  });;
 
 }
 
