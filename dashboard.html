@@ -707,9 +707,9 @@ function renderRateChart() {
 
   if (hasIncl) {
     const grad2 = ctx.createLinearGradient(0, 0, 0, 250);
-    grad2.addColorStop(0, 'rgba(156,163,175,0.15)');
-    grad2.addColorStop(0.6, 'rgba(156,163,175,0.05)');
-    grad2.addColorStop(1, 'rgba(156,163,175,0)');
+    grad2.addColorStop(0, 'rgba(156,163,175,0.5)');
+    grad2.addColorStop(0.5, 'rgba(156,163,175,0.2)');
+    grad2.addColorStop(1, 'rgba(156,163,175,0.02)');
     datasets.push({
       label: '의학계열 포함',
       data: valsIncl,
@@ -815,7 +815,7 @@ function renderDonut(cid,lid,labels,values,colors,total){
   if(charts[cid])charts[cid].destroy();
   const tot=total||values.reduce((a,b)=>a+b,0);
   charts[cid]=new Chart(ctx,{
-    type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:2,borderColor:'#fff',hoverOffset:4}]},
+    type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:2,borderColor:'#fff',hoverOffset:4,borderRadius:8,spacing:2}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'#e5eaf5',borderWidth:1,titleColor:'#111',bodyColor:'#6b7280',callbacks:{label:c=>{const pct=tot>0?(c.parsed/tot*100).toFixed(2):'0.00';return ` ${c.label}: ${c.parsed}명 (${pct}%)`}}}}},
     plugins:[{id:'ctr',afterDatasetsDraw(chart){
       const{ctx,chartArea:{left,top,right,bottom}}=chart,cx=(left+right)/2,cy=(top+bottom)/2;
@@ -852,10 +852,19 @@ function renderStkBar(cid,lid,allLbls,allVals,allClrs,s,filterType){
     type:'bar',data:{labels:[''],datasets:labels.map((l,i)=>({label:l,data:[values[i]],backgroundColor:colors[i],borderWidth:0,borderRadius:i===0?4:i===labels.length-1?4:0,borderSkipped:false}))},
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'#e5eaf5',borderWidth:1,titleColor:'#111',bodyColor:'#6b7280',callbacks:{label:c=>{const pct=bt>0?(c.parsed.x/bt*100).toFixed(2):'0.00';return ` ${c.dataset.label}: ${c.parsed.x}명 (${pct}%)`;}}},},scales:{x:{stacked:true,display:false,max:tot},y:{stacked:true,display:false}}}
   });
-  document.getElementById(lid).innerHTML=labels.map((l,i)=>{
-    const cnt=values[i],pct=bt>0?(cnt/bt*100).toFixed(2):'0.00';
-    return `<div class="lg-row"><div class="lg-dot" style="background:${colors[i]}"></div><span class="lg-name">${l}</span><span class="lg-cnt">${cnt}명</span><span class="lg-pct">(${pct}%)</span></div>`;
-  }).join('');
+  document.getElementById(lid).innerHTML = `<div style="display:grid;grid-template-columns:repeat(${labels.length},1fr);gap:8px;margin-top:12px">
+    ${labels.map((l,i)=>{
+      const cnt=values[i],pct=bt>0?(cnt/bt*100).toFixed(2):'0.00';
+      return `<div style="display:flex;flex-direction:column;gap:3px">
+        <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#6b7280">
+          <div style="width:10px;height:10px;border-radius:2px;background:${colors[i]};flex-shrink:0"></div>
+          <span>${l}</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#111827;padding-left:15px">${cnt}명</div>
+        <div style="font-size:12px;color:#9ca3af;padding-left:15px">${pct}%</div>
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
 // HISTO
@@ -882,7 +891,7 @@ function renderRetire(s){
 
   const items=[];
   const baseColors=['#1365FE','#3B82F6','#60A5FA','#93C5FD','#BFDBFE'];
-  for(let i=0;i<5;i++){
+  for(let i=4;i>=0;i--){
     const y=yr+i;
     items.push({label:`${y}학년도`, value:trends[String(y)]||0, color:baseColors[i]});
   }
@@ -959,13 +968,27 @@ function renderHeatmap(s) {
 
   html+='</tbody></table></div>';
 
-  html+=`<div style="display:flex;align-items:center;gap:6px;margin-top:10px;justify-content:flex-start;font-size:11px;color:#9ca3af">
+  const legendHtml=`<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#9ca3af">
     <span>적음</span>
-    ${[0.1,0.3,0.5,0.7,0.9].map(r=>`<div style="width:20px;height:12px;border-radius:3px;background:rgba(19,101,254,${0.15+r*0.85})"></div>`).join('')}
+    ${[0.1,0.3,0.5,0.7,0.9].map(r=>`<div style="width:18px;height:10px;border-radius:2px;background:rgba(19,101,254,${0.15+r*0.85})"></div>`).join('')}
     <span>많음</span>
   </div>`;
 
+  // 범례를 card-hd 우측에 삽입
   document.getElementById('heatmapWrap').innerHTML=html;
+  // 카드 헤더에 범례 추가
+  const hmCard=document.getElementById('heatmapWrap').closest('.card');
+  if(hmCard){
+    const hd=hmCard.querySelector('.card-hd');
+    if(hd && !hd.querySelector('.hm-legend')){
+      const lgDiv=document.createElement('div');
+      lgDiv.className='hm-legend';
+      lgDiv.innerHTML=legendHtml;
+      hd.appendChild(lgDiv);
+    } else if(hd){
+      hd.querySelector('.hm-legend').innerHTML=legendHtml;
+    }
+  }
 }
 
 // COLLEGE
