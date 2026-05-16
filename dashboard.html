@@ -772,32 +772,40 @@ function renderRateChart() {
         data.datasets.forEach((ds, di) => {
           const meta = chart.getDatasetMeta(di);
           if (!meta || meta.hidden) return;
-          const val = ds.data[lastIdx];
-          if (val == null) return;
-          const pt = meta.data[lastIdx];
-          if (!pt) return;
-          const x = pt.x, y = pt.y;
-          const label = Number(val).toFixed(2) + '%';
           const color = di === 0 ? '#1365FE' : '#9ca3af';
-          ctx.save();
-          ctx.font = 'bold 11px "Pretendard",sans-serif';
-          const tw = ctx.measureText(label).width;
-          const pad = 5, bh = 20, bw = tw + pad * 2;
-          let bx = x - bw / 2;
-          let by = y - bh - 8;
-          if (by < 2) by = y + 6;
-          if (bx < 2) bx = 2;
-          if (bx + bw > chart.width - 2) bx = chart.width - 2 - bw;
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, 4);
-          else ctx.rect(bx, by, bw, bh);
-          ctx.fill();
-          ctx.fillStyle = '#fff';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(label, bx + bw / 2, by + bh / 2);
-          ctx.restore();
+          ds.data.forEach((val, i) => {
+            if (val == null) return;
+            const pt = meta.data[i];
+            if (!pt) return;
+            const x = pt.x, y = pt.y;
+            const isLast = (i === lastIdx);
+            const label = Number(val).toFixed(2) + '%';
+            const pad = 5, bh = 20;
+            ctx.save();
+            ctx.font = isLast ? 'bold 11px "Pretendard",sans-serif' : '10px "Pretendard",sans-serif';
+            const tw = ctx.measureText(label).width;
+            const bw = tw + pad * 2;
+            let bx = x - bw / 2;
+            let by = y - bh - 8;
+            if (by < 2) by = y + 6;
+            if (bx < 2) bx = 2;
+            if (bx + bw > chart.width - 2) bx = chart.width - 2 - bw;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, 4);
+            else ctx.rect(bx, by, bw, bh);
+            if (isLast) {
+              ctx.fillStyle = color; ctx.fill();
+              ctx.fillStyle = '#fff';
+            } else {
+              ctx.fillStyle = '#fff'; ctx.fill();
+              ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.stroke();
+              ctx.fillStyle = '#111827';
+            }
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, bx + bw / 2, by + bh / 2);
+            ctx.restore();
+          });
         });
       }
     }]
@@ -874,57 +882,82 @@ function renderHisto(cid, dataObj, colors, total) {
   if(charts[cid]){charts[cid].destroy();charts[cid]=null;}
 
   // 커스텀 플러그인으로 직접 그리기
+  const maxAngle = Math.PI * 3 / 2; // 270°
   const plugin={
     id:'radialBar_'+cid,
     afterDraw(chart){
       const{ctx:c,chartArea:{left,top,right,bottom}}=chart;
       const cx=(left+right)/2, cy=(top+bottom)/2;
-      const outerR=Math.min((right-left),(bottom-top))/2*0.85;
-      const barH=outerR/n*0.7;
+      const outerR=Math.min((right-left),(bottom-top))/2*0.72;
+      const barH=Math.min(outerR/n*0.65, 18);
       const gap=outerR/n;
 
       c.save();
-      c.font=`500 11px 'Pretendard',sans-serif`;
 
       labels.forEach((label,i)=>{
         const ratio=values[i]/max;
         const r=outerR-(i*gap);
-        if(r<10)return;
+        if(r<8)return;
+        const startAngle=-Math.PI/2;
+        const endAngle=startAngle+(maxAngle*ratio);
+        const color=colors[i%colors.length];
+        const pct=tot>0?(values[i]/tot*100).toFixed(1):'0.0';
 
-        // 배경 호
+        // 배경 호 (360° 전체)
         c.beginPath();
-        c.arc(cx,cy,r,-Math.PI/2,Math.PI*3/2);
+        c.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2);
         c.strokeStyle='#f0f4ff';
         c.lineWidth=barH;
         c.lineCap='round';
         c.stroke();
 
-        // 데이터 호
+        // 데이터 호 (270° 기준 비율)
         if(ratio>0){
-          const endAngle=-Math.PI/2+(Math.PI*2*ratio);
           c.beginPath();
-          c.arc(cx,cy,r,-Math.PI/2,endAngle);
-          c.strokeStyle=colors[i%colors.length];
+          c.arc(cx,cy,r,startAngle,endAngle);
+          c.strokeStyle=color;
           c.lineWidth=barH;
           c.lineCap='round';
           c.stroke();
         }
 
-        // 레이블 (12시 방향 좌측)
-        const lx=cx-r-barH/2-6;
-        const ly=cy-r;
-        c.fillStyle='#6b7280';
+        // 호 끝점 좌표 (12시 = -90°에서 시작)
+        const ex=cx+r*Math.cos(endAngle);
+        const ey=cy+r*Math.sin(endAngle);
+
+        // 끝점에 원형 아이콘
+        c.beginPath();
+        c.arc(ex,ey,barH/2+1,0,Math.PI*2);
+        c.fillStyle='#fff';
+        c.fill();
+        c.strokeStyle=color;
+        c.lineWidth=2;
+        c.stroke();
+
+        // 화살표
+        c.save();
+        c.translate(ex,ey);
+        const arrowAngle=endAngle+Math.PI/2;
+        c.rotate(arrowAngle);
+        c.fillStyle=color;
+        c.font=`bold ${Math.max(barH*0.6,8)}px 'Pretendard',sans-serif`;
+        c.textAlign='center';
+        c.textBaseline='middle';
+        c.fillText('→',0,0);
+        c.restore();
+
+        // 레이블: 12시 방향(-90°) 시작점 좌측에 표시
+        const sx=cx+r*Math.cos(startAngle);
+        const sy=cy+r*Math.sin(startAngle);
+        const fs=Math.max(Math.min(barH*0.7,12),9);
+        c.font=`600 ${fs}px 'Pretendard',sans-serif`;
+        c.fillStyle='#374151';
         c.textAlign='right';
         c.textBaseline='middle';
-        c.fillText(label, lx, cy-r);
-
-        // 인원수
-        const pct=tot>0?(values[i]/tot*100).toFixed(1):'0.0';
-        c.fillStyle='#111827';
-        c.font=`700 11px 'Pretendard',sans-serif`;
-        c.textAlign='left';
-        c.fillText(`${values[i]}명 (${pct}%)`, cx+r+barH/2+6, cy-r);
-        c.font=`500 11px 'Pretendard',sans-serif`;
+        c.fillText(`${label}`, sx-barH/2-6, sy);
+        c.font=`400 ${fs-1}px 'Pretendard',sans-serif`;
+        c.fillStyle='#6b7280';
+        c.fillText(`${values[i]}명 / ${pct}%`, sx-barH/2-6, sy+fs);
       });
       c.restore();
     }
@@ -1017,7 +1050,7 @@ function renderHeatmap(s) {
       const pct=total>0?(v/total*100).toFixed(1):'0.0';
       const bg=cellColor(v), tc=textColor(v);
       html+=`<td class="heatmap-cell" style="background:${bg};color:${tc};width:40px" title="${ag} × ${t}: ${v}명 (${pct}%)">
-        ${v?`<div class="cell-cnt">${v}</div><div class="cell-pct">(${pct}%)</div>`:''}
+        ${v?`<div class="cell-cnt">${v}명</div><div class="cell-pct">(${pct}%)</div>`:''}
       </td>`;
     });
     html+='</tr>';
@@ -1144,13 +1177,13 @@ function renderCollege(s){
     const fs=t.w>80&&t.h>50?11:t.w>50&&t.h>35?10:9;
     const showCnt=t.w>60&&t.h>45;
     const showPct=t.w>60&&t.h>60;
-    // 인원수 비례 색상 농도 (진한→연한)
+    // 인원수 비례 색상 농도 (최대=진한 파랑, 최소=매우 연한 파랑)
     const ratio=t.cnt/maxCnt;
-    const r=Math.round(19+(219-19)*(1-ratio));
-    const g=Math.round(101+(219-101)*(1-ratio));
-    const b=Math.round(254+(254-254)*(1-ratio));
-    const bg=`rgb(${r},${g},${b})`;
-    // 농도 낮으면 글자 파랑 계열, 높으면 흰색
+    // 최소 0.08, 최대 1.0으로 균등 분포
+    const minOpacity=0.10, maxOpacity=1.0;
+    const opacity=minOpacity+(maxOpacity-minOpacity)*ratio;
+    const bg=`rgba(19,101,254,${opacity.toFixed(3)})`;
+    // 농도 0.45 이하면 파랑 텍스트, 이상이면 흰색
     const textCol=ratio>0.45?'#fff':'#1365FE';
     const textColSub=ratio>0.45?'rgba(255,255,255,0.85)':'rgba(19,101,254,0.7)';
     return `<div style="
