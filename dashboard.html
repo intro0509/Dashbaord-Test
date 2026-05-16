@@ -300,7 +300,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       <div class="card">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#0ea5e9"></div>전임교원 확보율 추이</div></div>
         <div style="position:relative;height:300px"><canvas id="rateChart"></canvas></div>
-        <p style="margin-top:10px;font-size:11px;color:#f59e0b;line-height:1.6;border-top:1px solid #f3f4f6;padding-top:8px">
+        <p style="margin-top:10px;font-size:11px;color:#1365FE;line-height:1.6;border-top:1px solid #f3f4f6;padding-top:8px">
           💡 출처: 고등교육통계조사(매 학년도 4월 1일 기준)
         </p>
       </div>
@@ -440,7 +440,7 @@ const GRID='rgba(243,244,246,1)';
 const TRACK_COLORS=['#1365FE','#BFDBFE'];
 const NT_COLORS=['#1365FE','#60A5FA','#93C5FD','#BFDBFE'];
 const RANK_COLORS=['#1365FE','#60A5FA','#BFDBFE'];
-const GENDER_COLORS=['#1365FE','#8b5cf6'];
+const GENDER_COLORS=['#1365FE','#BFDBFE'];
 const AGE_COLORS=['#1e40af','#2563eb','#3b82f6','#60a5fa','#93c5fd'];
 const TENURE_COLORS=['#1e40af','#1d4ed8','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe'];
 
@@ -890,12 +890,69 @@ function renderStkBar(cid,lid,allLbls,allVals,allClrs,s,filterType){
       x+=w;
     });
   }};
-  charts[cid]=new Chart(ctx,{
+  // hover 툴팁
+  const tooltipPlugin={id:'stkTooltip_'+cid,afterDraw(chart){
+    const{ctx:c,chartArea:{left,top,right,bottom}}=chart;
+    const tip=chart._stkTip;
+    if(!tip)return;
+    const fs=12, pad=8, bh=28;
+    c.save();
+    c.font=`500 ${fs}px 'Pretendard',sans-serif`;
+    const tw=c.measureText(tip.text).width;
+    const bw=tw+pad*2;
+    let bx=tip.x-bw/2, by=tip.y-bh-8;
+    if(bx<0)bx=0;
+    if(bx+bw>chart.width)bx=chart.width-bw;
+    if(by<0)by=tip.y+8;
+    c.fillStyle='#fff';
+    c.strokeStyle='#e5eaf5';
+    c.lineWidth=1;
+    c.shadowColor='rgba(0,0,0,0.08)';
+    c.shadowBlur=8;
+    c.beginPath();
+    if(c.roundRect)c.roundRect(bx,by,bw,bh,6);
+    else c.rect(bx,by,bw,bh);
+    c.fill();c.stroke();
+    c.shadowBlur=0;
+    c.fillStyle='#111827';
+    c.textAlign='center';
+    c.textBaseline='middle';
+    c.fillText(tip.text,bx+bw/2,by+bh/2);
+    c.restore();
+  }};
+
+  const chartInst=new Chart(ctx,{
     type:'bar',data:{labels:[''],datasets:[{data:[tot],backgroundColor:'transparent',borderWidth:0}]},
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{x:{display:false,max:tot},y:{display:false}}},
-    plugins:[stkPlugin]
+    plugins:[stkPlugin,tooltipPlugin]});
+  charts[cid]=chartInst;
+
+  // 마우스 이벤트
+  canvas.onmousemove=function(e){
+    const rect=canvas.getBoundingClientRect();
+    const mx=e.clientX-rect.left;
+    const ca=chartInst.chartArea;
+    if(!ca)return;
+    const cy2=(ca.top+ca.bottom)/2;
+    const barH2=(ca.bottom-ca.top)*0.82;
+    if(Math.abs(e.clientY-rect.top-cy2)>barH2/2){chartInst._stkTip=null;chartInst.update('none');return;}
+    const avail=(ca.right-ca.left)*0.92;
+    let x=ca.left;
+    for(let i=0;i<labels.length;i++){
+      const w=tot>0?(values[i]/tot)*avail:0;
+      if(mx>=x&&mx<=x+w){
+        const pct=bt>0?(values[i]/bt*100).toFixed(2):'0.00';
+        chartInst._stkTip={x:x+w/2,y:cy2-barH2/2,text:`${labels[i]}: ${values[i]}명 (${pct}%)`};
+        chartInst.update('none');
+        return;
+      }
+      x+=w;
+    }
+    chartInst._stkTip=null;chartInst.update('none');
+  };
+  canvas.onmouseleave=function(){chartInst._stkTip=null;chartInst.update('none');
   });
   document.getElementById(lid).innerHTML = `<div style="display:grid;grid-template-columns:repeat(${labels.length},1fr);gap:0;margin-top:12px">
     ${labels.map((l,i)=>{
@@ -913,8 +970,11 @@ function renderStkBar(cid,lid,allLbls,allVals,allClrs,s,filterType){
 }
 
 // RADIAL BAR CHART (재직기간/연령) - 12시 방향 시작, 레이블 좌측
+const TENURE_LBL={'5년 미만':'▼ 5년','5년-10년':'▼ 10년','10년-15년':'▼ 15년','15년-20년':'▼ 20년','20년-25년':'▼ 25년','25년-30년':'▼ 30년','30년 초과':'▲ 30년'};
+const AGE_LBL2={'30세 미만':'▼ 30세','30세-40세':'▼ 40세','40세-50세':'▼ 50세','50세-60세':'▼ 60세','60세 초과':'▲ 60세'};
 function renderHisto(cid, dataObj, colors, total) {
-  const labels=Object.keys(dataObj), values=Object.values(dataObj);
+  const rawLabels=Object.keys(dataObj), values=Object.values(dataObj);
+  const labels=rawLabels.map(l=>TENURE_LBL[l]||AGE_LBL2[l]||l);
   const tot=total||values.reduce((a,b)=>a+b,0);
   const max=Math.max(...values)||1;
   const n=labels.length;
@@ -932,7 +992,8 @@ function renderHisto(cid, dataObj, colors, total) {
       const cx=(left+right)/2, cy=(top+bottom)/2;
       const outerR=Math.min((right-left),(bottom-top))/2*0.72;
       const barH=Math.min(outerR/Math.min(n,5)*0.65, 18); // 최대 5개 기준 굵기
-      const gap=outerR/n;
+      const fixedN=Math.max(n,7); // 재직기간(7)/연령(5) 간격 통일
+      const gap=outerR/fixedN;
 
       c.save();
 
