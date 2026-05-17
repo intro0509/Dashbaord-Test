@@ -177,13 +177,13 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 @media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr 1fr}}
 
 /* HEATMAP */
-.heatmap-table{border-collapse:separate;border-spacing:3px;width:auto;margin:0}
-.heatmap-table th{font-size:10px;color:#9ca3af;font-weight:500;padding:3px 6px;text-align:center;white-space:nowrap}
-.heatmap-table th.row-header{text-align:right;min-width:70px;font-size:10px}
-.heatmap-cell{border-radius:5px;width:34px;height:34px;text-align:center;vertical-align:middle;font-size:9px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
+.heatmap-table{border-collapse:separate;border-spacing:2px;width:100%;margin:0}
+.heatmap-table th{font-size:9px;color:#9ca3af;font-weight:500;padding:2px 4px;text-align:center;white-space:nowrap}
+.heatmap-table th.row-header{text-align:right;min-width:52px;width:52px;font-size:9px}
+.heatmap-cell{border-radius:4px;width:30px;height:30px;text-align:center;vertical-align:middle;font-size:8px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
 .heatmap-cell:hover{transform:scale(1.08);box-shadow:0 2px 8px rgba(19,101,254,.25);z-index:10}
-.heatmap-cell .cell-cnt{font-size:10px;font-weight:700}
-.heatmap-cell .cell-pct{font-size:9px;opacity:.8}
+.heatmap-cell .cell-cnt{font-size:9px;font-weight:700}
+.heatmap-cell .cell-pct{font-size:8px;opacity:.8}
 
 footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
 </style>
@@ -327,7 +327,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
           <span class="fchip" onclick="setFilter('track','비정년트랙',this)">비정년트랙</span>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
-          <div style="position:relative;height:160px;flex:0 0 160px"><canvas id="trackDonutChart"></canvas></div>
+          <div style="position:relative;height:160px;flex:0 0 auto;width:min(160px,45%)"><canvas id="trackDonutChart"></canvas></div>
           <div class="legend" id="trackDonutLegend" style="flex:1"></div>
         </div>
       </div>
@@ -343,7 +343,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
           <span class="fchip" onclick="setFilter('non_tenure','외국인',this)">외국인</span>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
-          <div style="position:relative;height:160px;flex:0 0 160px"><canvas id="nonTenureDonutChart"></canvas></div>
+          <div style="position:relative;height:160px;flex:0 0 auto;width:min(160px,45%)"><canvas id="nonTenureDonutChart"></canvas></div>
           <div class="legend" id="nonTenureDonutLegend" style="flex:1"></div>
         </div>
       </div>
@@ -1213,8 +1213,8 @@ function renderHeatmap(s) {
 
   let html=`<div style="overflow-x:auto"><table class="heatmap-table">
     <thead><tr>
-      <th class="row-header" style="min-width:70px"></th>
-      ${TEN.map(()=>`<th style="min-width:34px;width:34px"></th>`).join('')}
+      <th class="row-header" style="min-width:52px;width:52px"></th>
+      ${TEN.map(()=>`<th style="min-width:30px;width:30px"></th>`).join('')}
     </tr></thead>
     <tbody>`;
 
@@ -1225,7 +1225,7 @@ function renderHeatmap(s) {
       const pct=total>0?(v/total*100).toFixed(1):'0.0';
       const bg=cellColor(v), tc=textColor(v);
       const agLbl=AGE_LBL[ag]||ag, tLbl=TEN_LBL[t]||t;
-      html+=`<td class="heatmap-cell" style="background:${bg};color:${tc};width:34px" title="">
+      html+=`<td class="heatmap-cell" style="background:${bg};color:${tc};width:30px" title="">
         ${v?`<div class="cell-cnt">${v}명</div><div class="cell-pct">(${pct}%)</div>`:''}
       </td>`;
     });
@@ -1233,8 +1233,8 @@ function renderHeatmap(s) {
   });
 
   html+=`<tr>
-    <th class="row-header" style="min-width:70px"></th>
-    ${TEN.map(t=>`<th style="min-width:34px;width:34px;font-size:10px;color:#9ca3af;font-weight:500;padding:4px 2px;text-align:center;white-space:nowrap">${TEN_LBL[t]||t}</th>`).join('')}
+    <th class="row-header" style="min-width:52px;width:52px"></th>
+    ${TEN.map(t=>`<th style="min-width:30px;width:30px;font-size:9px;color:#9ca3af;font-weight:500;padding:3px 1px;text-align:center;white-space:nowrap">${TEN_LBL[t]||t}</th>`).join('')}
   </tr>`;
 
   html+='</tbody></table></div>';
