@@ -89,7 +89,7 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .card{background:#fff;border-radius:14px;padding:18px;border:1px solid #e5eaf5;transition:box-shadow .2s}
 .card:hover{box-shadow:0 2px 12px rgba(19,101,254,.06)}
 .card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.card-title{font-size:13px;font-weight:700;color:#111827;display:flex;align-items:center;gap:7px}
+.card-title{font-size:15px;font-weight:700;color:#111827;display:flex;align-items:center;gap:7px}
 .cdot{width:7px;height:7px;border-radius:50%;background:#1365FE;flex-shrink:0}
 .card-fbar{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
 
@@ -119,7 +119,7 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .retire-bar{height:100%;border-radius:3px;transition:width 1s ease;width:0}
 
 /* COLLEGE */
-.college-scroll{max-height:320px;overflow-y:auto}
+.college-scroll{max-height:320px;overflow-y:auto;padding-right:12px}
 .college-table{width:100%;border-collapse:collapse;font-size:12px}
 .college-table th{text-align:left;padding:6px 8px;color:#9ca3af;font-weight:500;border-bottom:1px solid #f3f4f6;font-size:11px}
 .college-table td{padding:7px 8px;border-bottom:1px solid #f9fafb;color:#374151}
@@ -303,7 +303,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       <div class="card">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#0ea5e9"></div>전임교원 확보율 추이</div></div>
         <div style="position:relative;height:300px"><canvas id="rateChart"></canvas></div>
-        <p style="margin-top:10px;font-size:11px;color:#1365FE;line-height:1.6;border-top:1px solid #f3f4f6;padding-top:8px">
+        <p style="margin-top:10px;font-size:11px;color:#111827;line-height:1.6;border-top:1px solid #f3f4f6;padding-top:8px">
           💡 출처: 고등교육통계조사(매 학년도 4월 1일 기준)
         </p>
       </div>
@@ -743,7 +743,7 @@ function renderRateChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { top: 40, right: 16, left: 0, bottom: 0 } },
+      layout: { padding: { top: 8, right: 16, left: 0, bottom: 0 } },
       plugins: {
         legend: {
           display: true,
