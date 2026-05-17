@@ -367,27 +367,43 @@ async function processFile() {
     log(`📊 확보율 열: C열(${rateColIdx+1}번째), D열(${rateIncColIdx+1}번째)`, '');
     setProgress(20);
 
-    // ── 확보율 데이터 읽기 (B열=학년도, C열=제외, D열=포함) ──
+    // ── 확보율 데이터 읽기: 열 위치를 동적으로 탐색 ──
     const rateData = {};
-    // 디버그: B열 첫 15행 값 확인
-    const debugRows = rawRows.slice(0, 15).map((r,i) => `행${i+1}:B=${JSON.stringify(r?r[1]:null)},C=${JSON.stringify(r?r[rateColIdx]:null)}`);
-    log(`🔍 B열 샘플: ${debugRows.join(' | ')}`, '');
+    // 헤더 행에서 확보율 열 인덱스 재탐색 (전체 행 기준)
+    let rateYrColIdx = -1; // 학년도 열
     for (let i = 0; i < rawRows.length; i++) {
       const row = rawRows[i];
       if (!row) continue;
-      const yrRaw = row[1]; // B열: 학년도
-      if (yrRaw === null || yrRaw === undefined || yrRaw === '') continue;
-      const yr = String(parseFloat(yrRaw));  // "2026.00" → "2026"
-      if (!yr.match(/^\d{4}$/)) continue;
-      const exclRaw = row[rateColIdx];
-      const inclRaw = row[rateIncColIdx];
-      const excl = (exclRaw !== null && exclRaw !== undefined && exclRaw !== '') ? parseFloat(exclRaw) : null;
-      const incl = (inclRaw !== null && inclRaw !== undefined && inclRaw !== '') ? parseFloat(inclRaw) : null;
-      if (excl !== null || incl !== null) {
-        rateData[yr] = {
-          exclude: (excl !== null && !isNaN(excl)) ? excl : null,
-          include: (incl !== null && !isNaN(incl)) ? incl : null
-        };
+      // 이 행에서 확보율 헤더 찾기
+      for (let j = 0; j < row.length; j++) {
+        const s = String(row[j]||'').replace(/[\s\r\n]/g,'');
+        if (s === '학년도') rateYrColIdx = j;
+        if (s.includes('확보율') && s.includes('제외')) rateColIdx = j;
+        if (s.includes('확보율') && s.includes('포함')) rateIncColIdx = j;
+      }
+      // 학년도 + 확보율 열을 모두 찾았으면 다음 행부터 데이터 읽기
+      if (rateYrColIdx >= 0 && rateColIdx >= 0) {
+        log(`📊 확보율 열 재탐색: 학년도=${rateYrColIdx}, 제외=${rateColIdx}, 포함=${rateIncColIdx}`, '');
+        // 이 행 다음부터 데이터 읽기
+        for (let k = i + 1; k < rawRows.length; k++) {
+          const r = rawRows[k];
+          if (!r) continue;
+          const yrRaw = r[rateYrColIdx];
+          if (yrRaw === null || yrRaw === undefined || yrRaw === '') continue;
+          const yr = String(Math.round(Number(String(yrRaw).replace(/[^0-9.]/g,''))));
+          if (!yr.match(/^\d{4}$/)) continue;
+          const exclRaw = r[rateColIdx];
+          const inclRaw = r[rateIncColIdx];
+          const excl = exclRaw !== null ? parseFloat(String(exclRaw).replace('%','')) : null;
+          const incl = inclRaw !== null ? parseFloat(String(inclRaw).replace('%','')) : null;
+          if (excl !== null && !isNaN(excl)) {
+            rateData[yr] = {
+              exclude: excl,
+              include: (incl !== null && !isNaN(incl)) ? incl : null
+            };
+          }
+        }
+        break;
       }
     }
     log(`✅ 확보율 데이터: ${Object.keys(rateData).length}개년 (${Object.keys(rateData).sort().join(', ')})`, 'log-ok');
