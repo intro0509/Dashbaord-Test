@@ -110,7 +110,11 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .histo-lbl{font-size:12px;color:#374151;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar-bg{height:15px;background:#f0f4ff;border-radius:8px;overflow:hidden}
 .bar-fill{height:100%;border-radius:8px;transition:width 1s ease;width:0%}
+<<<<<<< HEAD
 .histo-cnt{font-size:15px;font-weight:700;color:#111827;text-align:right;white-space:nowrap}
+=======
+.histo-cnt{font-size:13px;font-weight:700;color:#111827;text-align:right;white-space:nowrap}
+>>>>>>> 8725df8b810791526bfd8c66984f5e02d3052dcf
 .histo-pct{font-size:11px;color:#9ca3af;text-align:right;white-space:nowrap}
 
 /* RETIRE */
@@ -127,7 +131,11 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:#f0f5ff;col
 .college-table th{text-align:left;padding:6px 8px;color:#9ca3af;font-weight:500;border-bottom:1px solid #f3f4f6;font-size:11px}
 .college-table td{padding:7px 8px;border-bottom:1px solid #f9fafb;color:#374151}
 .college-table tr:last-child td{border-bottom:none}
+<<<<<<< HEAD
 .col-num{font-weight:700;color:#111827;text-align:right;font-size:15px}
+=======
+.col-num{font-weight:700;color:#111827;text-align:right;font-size:13px}
+>>>>>>> 8725df8b810791526bfd8c66984f5e02d3052dcf
 .col-name{font-size:12px;color:#374151}
 .col-pct{color:#9ca3af;font-size:11px;text-align:right}
 .col-bar-bg{height:15px;background:#f0f4ff;border-radius:8px;overflow:hidden;width:60px;min-width:40px}
@@ -468,8 +476,13 @@ const TRACK_COLORS=['#1365FE','#BFDBFE'];
 const NT_COLORS=['#1365FE','#60A5FA','#93C5FD','#BFDBFE'];
 const RANK_COLORS=['#1365FE','#60A5FA','#BFDBFE'];
 const GENDER_COLORS=['#1365FE','#BFDBFE'];
+<<<<<<< HEAD
 const AGE_COLORS=['#1365FE','#2563eb','#3b82f6','#60a5fa','#93c5fd'];
 const TENURE_COLORS=['#1365FE','#1d4ed8','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe'];
+=======
+const AGE_COLORS=['#93c5fd','#60a5fa','#3b82f6','#2563eb','#1365FE'];
+const TENURE_COLORS=['#bfdbfe','#93c5fd','#60a5fa','#3b82f6','#2563eb','#1d4ed8','#1365FE'];
+>>>>>>> 8725df8b810791526bfd8c66984f5e02d3052dcf
 
 // LOAD
 async function loadData() {
@@ -1109,12 +1122,21 @@ function renderHisto(cid, dataObj, colors, total, legendId) {
       const cx = W / 2;
       const cy = H / 2;
 
+<<<<<<< HEAD
       // 안쪽 공간 축소, 두께 증가
       const margin = 2;
       const maxR = Math.min(W, H) / 2 * 0.96;
       const arcGap = n > 1 ? (maxR - margin) / (n - 1) * 0.65 : maxR;
       const outerR = maxR;
       const barH = Math.min(arcGap * 0.85, 26);
+=======
+      // 모든 항목 표시 보장 (r<8 스킵 없음)
+      const margin = 8;
+      const maxR = Math.min(W, H) / 2 * 0.90;
+      const arcGap = n > 1 ? (maxR - margin) / (n - 1) * 0.5 : maxR;
+      const outerR = maxR;
+      const barH = Math.min(arcGap * 0.55, 16);
+>>>>>>> 8725df8b810791526bfd8c66984f5e02d3052dcf
       const prog = charts['_anim_'+cid] || 1;
 
       // 레이블 고정 3열 탭 — 오른쪽 한계를 cx(12시 방향)로 설정
@@ -1128,7 +1150,10 @@ function renderHisto(cid, dataObj, colors, total, legendId) {
         const r = outerR - (i * arcGap);
         const startAngle = -Math.PI / 2;
         const animatedAngle = startAngle + (maxAngle * ratio * prog);
+<<<<<<< HEAD
         // 색상: 배열 순서대로 (바깥쪽=i=0이 가장 진한색)
+=======
+>>>>>>> 8725df8b810791526bfd8c66984f5e02d3052dcf
         const color = colors[i % colors.length];
         const pct = tot > 0 ? (values[i] / tot * 100).toFixed(1) : '0.0';
 
@@ -1187,6 +1212,7 @@ function renderHisto(cid, dataObj, colors, total, legendId) {
         ${labels.map((l, i) => {
           const cnt = values[i] || 0;
           const pct = tot > 0 ? (cnt / tot * 100).toFixed(1) : '0.0';
+<<<<<<< HEAD
           const colorIdx = i % colors.length;
           return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;text-align:center">
             <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#6b7280">
@@ -1194,6 +1220,14 @@ function renderHisto(cid, dataObj, colors, total, legendId) {
               <span>${l}</span>
             </div>
             <div style="font-size:15px;font-weight:700;color:#111827">${cnt}명 <span style="font-size:11px;font-weight:400;color:#9ca3af">(${pct}%)</span></div>
+=======
+          return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;text-align:center">
+            <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#6b7280">
+              <div style="width:9px;height:9px;border-radius:2px;background:${colors[i % colors.length]};flex-shrink:0"></div>
+              <span>${l}</span>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:#111827">${cnt}명 <span style="font-size:11px;font-weight:400;color:#9ca3af">(${pct}%)</span></div>
+>>>>>>> 8725df8b810791526bfd8c66984f5e02d3052dcf
           </div>`;
         }).join('')}
       </div>`;
