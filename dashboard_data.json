@@ -1,6 +1,6 @@
 {
   "meta": {
-    "updated": "2026-05-17 09:40:13",
+    "updated": "2026-05-17 11:23:10",
     "source": "RAWDATA.xlsx",
     "years": [
       "2022",
@@ -119,15 +119,15 @@
     },
     "2023": {
       "exclude": 69.7,
-      "include": 75.37
+      "include": 81.15
     },
     "2024": {
       "exclude": 67.1,
-      "include": 75.37
+      "include": 79.07
     },
     "2025": {
       "exclude": 65.1,
-      "include": 75.37
+      "include": 76.14
     },
     "2026": {
       "exclude": 65.14,
