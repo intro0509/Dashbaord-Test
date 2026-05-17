@@ -341,10 +341,10 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
     </div>
 
     <!-- 메인 레이아웃 -->
-    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto auto auto;gap:14px;margin-bottom:14px;align-items:start">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:start">
 
       <!-- Row1 Col1: 트랙별 -->
-      <div class="card" style="grid-column:1;grid-row:1">
+      <div class="card" id="card-track" style="grid-column:1;grid-row:1">
         <div class="card-hd"><div class="card-title"><div class="cdot"></div>트랙별 현황</div></div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="position:relative;height:160px;flex:0 0 auto;width:min(160px,45%)"><canvas id="trackDonutChart"></canvas></div>
@@ -361,14 +361,14 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
         </div>
       </div>
 
-      <!-- Row1~2 Col3: 단과대학별 -->
-      <div class="card" style="grid-column:3;grid-row:1/3">
+      <!-- Col3: 단과대학별 (Row1~2, 높이 JS로 동적 설정) -->
+      <div class="card" id="card-college" style="grid-column:3;grid-row:1/3;align-self:stretch">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#6366f1"></div>단과대학별 현황</div></div>
         <div class="college-scroll" id="collegeTable" style="max-height:500px"></div>
       </div>
 
       <!-- Row2 Col1: 직급별 -->
-      <div class="card" style="grid-column:1;grid-row:2">
+      <div class="card" id="card-rank" style="grid-column:1;grid-row:2">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#f59e0b"></div>직급별 현황</div></div>
         <div style="position:relative;height:28px;margin:4px 0"><canvas id="rankChart"></canvas></div>
         <div class="legend" id="rankLegend" style="margin-top:10px"></div>
@@ -669,6 +669,7 @@ async function renderAll() {
   document.getElementById('filterTotal').textContent = s.total.toLocaleString()+'명';
   animateBars();
   document.getElementById('footer').textContent = `동아대학교 전임교원 현황 대시보드 · ${currentYear}학년도 기준 · 업데이트: ${DB.meta.updated}`;
+  setTimeout(adjustCollegeHeight, 150);
 
 }
 
@@ -1381,8 +1382,21 @@ function applyScale() {
 }
 
 applyScale();
-window.addEventListener('resize', applyScale);
-setTimeout(applyScale, 800);
+window.addEventListener('resize', () => { applyScale(); adjustCollegeHeight(); });
+setTimeout(() => { applyScale(); adjustCollegeHeight(); }, 800);
+
+// 단과대학 카드 높이를 Row1+Row2 합계로 동적 설정
+function adjustCollegeHeight() {
+  const cardTrack = document.getElementById('card-track');
+  const cardRank = document.getElementById('card-rank');
+  const cardCollege = document.getElementById('card-college');
+  if (!cardTrack || !cardRank || !cardCollege) return;
+  const gap = 14;
+  const totalH = cardTrack.offsetHeight + gap + cardRank.offsetHeight;
+  cardCollege.style.height = totalH + 'px';
+  const scroll = cardCollege.querySelector('.college-scroll');
+  if (scroll) scroll.style.maxHeight = (totalH - 60) + 'px';
+}
 </script>
 </body>
 </html>
