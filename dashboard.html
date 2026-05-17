@@ -309,7 +309,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
         <span class="filter-label">학년도</span>
         <div id="yearFilter" style="display:flex;gap:4px"></div>
       </div>
-      <span class="fsep">|</span>
+      <span class="fsep" style="margin:0 8px">|</span>
       <div class="filter-section">
         <span class="filter-label">트랙</span>
         <div id="trackFilter" style="display:flex;gap:4px">
@@ -318,7 +318,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
           <span class="fchip" onclick="setFilter('track','비정년트랙',this)">비정년트랙</span>
         </div>
       </div>
-      <span class="fsep">|</span>
+      <span class="fsep" style="margin:0 8px">|</span>
       <div class="filter-section">
         <span class="filter-label">비정년트랙</span>
         <div id="nonTenureFilter" style="display:flex;gap:4px" class="disabled-bar">
@@ -329,7 +329,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
           <span class="fchip" onclick="setFilter('non_tenure','외국인',this)">외국인</span>
         </div>
       </div>
-      <span class="fsep">|</span>
+      <span class="fsep" style="margin:0 8px">|</span>
       <div class="filter-section">
         <span class="filter-label">의학계열</span>
         <div style="display:flex;gap:4px">
@@ -337,7 +337,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
           <span class="fchip" id="btnInclude" onclick="setMedical('include')">포함</span>
         </div>
       </div>
-      <button class="filter-reset-btn" onclick="resetAllFilters()">✕ 초기화</button>
+      <button class="filter-reset-btn" style="margin-left:auto" onclick="resetAllFilters()">✕ 초기화</button>
     </div>
 
     <!-- 메인 차트 그리드: 3열 기반 -->
@@ -346,11 +346,6 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       <!-- Row1 Col1: 트랙별 -->
       <div class="card">
         <div class="card-hd"><div class="card-title"><div class="cdot"></div>트랙별 현황</div></div>
-        <div class="card-fbar" id="trackFilterCard">
-          <span class="fchip on" onclick="setFilter('track','전체',this)">전체</span>
-          <span class="fchip" onclick="setFilter('track','정년트랙',this)">정년트랙</span>
-          <span class="fchip" onclick="setFilter('track','비정년트랙',this)">비정년트랙</span>
-        </div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="position:relative;height:160px;flex:0 0 auto;width:min(160px,45%)"><canvas id="trackDonutChart"></canvas></div>
           <div class="legend" id="trackDonutLegend" style="flex:1"></div>
@@ -360,13 +355,6 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       <!-- Row1 Col2: 비정년트랙별 -->
       <div class="card">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#0ea5e9"></div>비정년트랙별 현황</div></div>
-        <div class="card-fbar disabled-bar" id="nonTenureFilterCard">
-          <span class="fchip on" onclick="setFilter('non_tenure','전체',this)">전체</span>
-          <span class="fchip" onclick="setFilter('non_tenure','강의전담',this)">강의전담</span>
-          <span class="fchip" onclick="setFilter('non_tenure','연구전담',this)">연구전담</span>
-          <span class="fchip" onclick="setFilter('non_tenure','산학협력전담',this)">산학협력전담</span>
-          <span class="fchip" onclick="setFilter('non_tenure','외국인',this)">외국인</span>
-        </div>
         <div style="display:flex;align-items:center;gap:12px">
           <div style="position:relative;height:160px;flex:0 0 auto;width:min(160px,45%)"><canvas id="nonTenureDonutChart"></canvas></div>
           <div class="legend" id="nonTenureDonutLegend" style="flex:1"></div>
