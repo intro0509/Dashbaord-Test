@@ -493,7 +493,7 @@ async function initDashboard() {
   const chips = yearFilter.querySelectorAll('.fchip');
   if (chips.length > 0) chips[0].classList.add('on');
   document.getElementById('nonTenureFilter').classList.add('disabled-bar');
-  document.getElementById('nonTenureFilterCard').classList.add('disabled-bar');
+  
   await renderAll();
 }
 
@@ -601,24 +601,22 @@ async function setFilter(type, value, chipEl) {
   activeFilters[type] = value;
   if (type === 'track') {
     const isNT = value === '비정년트랙';
-    ['nonTenureFilter','nonTenureFilterCard'].forEach(id => {
+    ['nonTenureFilter'].forEach(id => {
       document.getElementById(id).classList.toggle('disabled-bar', !isNT);
     });
     if (!isNT) {
       activeFilters.non_tenure = '전체';
-      ['nonTenureFilter','nonTenureFilterCard'].forEach(id => syncChips(id, '전체'));
+      ['nonTenureFilter'].forEach(id => syncChips(id, '전체'));
     }
   }
   const barMap = {track:'trackFilter',non_tenure:'nonTenureFilter'};
-  const cardMap = {track:'trackFilterCard',non_tenure:'nonTenureFilterCard'};
   if (barMap[type]) syncChips(barMap[type], value);
-  if (cardMap[type]) syncChips(cardMap[type], value);
   await renderAll();
 }
 async function resetAllFilters() {
   activeFilters = {track:'전체',non_tenure:'전체'};
   document.querySelectorAll('.fchip').forEach(c => c.classList.toggle('on', c.textContent.trim() === '전체'));
-  ['nonTenureFilter','nonTenureFilterCard'].forEach(id => document.getElementById(id).classList.add('disabled-bar'));
+  ['nonTenureFilter'].forEach(id => document.getElementById(id).classList.add('disabled-bar'));
   await renderAll();
 }
 async function setYearFilter(yr, el) {
