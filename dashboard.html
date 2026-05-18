@@ -297,9 +297,9 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       <div class="rate-card">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#0ea5e9"></div>전임교원 확보율 추이</div></div>
         <div style="position:relative;height:220px"><canvas id="rateChart"></canvas></div>
-        <p style="margin-top:14px;font-size:11px;color:#111827;line-height:1.6;border-top:1px solid #f3f4f6;padding-top:8px;text-align:center">
+        <div style="margin-top:14px;font-size:11px;color:#111827;border-top:1px solid #f3f4f6;padding-top:8px;display:flex;align-items:center;text-align:left">
           💡 출처: 고등교육통계조사(매 학년도 4월 1일 기준)
-        </p>
+        </div>
       </div>
     </div>
 
@@ -911,7 +911,7 @@ function renderRateChart() {
             const isLast = (i === realLastIdx);
             const label = Number(val).toFixed(1) + '%';
             const lastFontSize = 15;
-            const otherFontSize = 11;
+            const otherFontSize = 12;
             const fontSize = isLast ? lastFontSize : otherFontSize;
             const pad = isLast ? 10 : 5;
             const bh = isLast ? 30 : 20;
