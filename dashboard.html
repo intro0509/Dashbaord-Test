@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1;color:#111827;font-size:14px}
+html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1;color:#111827;font-size:14px}
 
 /* APP WRAPPER */
 #appWrapper{background:#F6F6F6;border-radius:20px;margin:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);position:relative}
@@ -1508,9 +1508,10 @@ function applyScale() {
 
     // wrapper 높이: scaleRoot 실제 높이 + navH + 하단 여백
     try {
+      // wrapper 높이: JS 미설정 → CSS auto, margin:16px 자연스럽게 보임
+      // scaleRoot 원본 높이와 scale된 높이 차이를 margin-bottom으로 보정
       const contentH = root.scrollHeight * scale;
-      // margin은 scrollHeight에 미포함 → 넉넉히 추가
-      wrapper.style.height = (navH + contentH + 40) + 'px';
+      root.style.marginBottom = `-${root.scrollHeight - contentH}px`;
     } catch(e) { console.warn('wrapper height error:', e); }
   });
 }
