@@ -300,7 +300,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       <div class="rate-card">
         <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#0ea5e9"></div>전임교원 확보율 추이</div></div>
         <div style="position:relative;height:220px"><canvas id="rateChart"></canvas></div>
-        <div style="margin-top:14px;font-size:11px;color:#111827;border-top:1px solid #f3f4f6;padding-top:8px;display:flex;align-items:center;text-align:left">
+        <div style="margin-top:14px;font-size:12px;color:#111827;border-top:1px solid #f3f4f6;padding-top:8px;display:flex;align-items:center;text-align:left">
           💡 출처: 고등교육통계조사(매 학년도 4월 1일 기준)
         </div>
       </div>
@@ -426,7 +426,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
 
     </div>
 
-    <footer id="footer" style="text-align:center;font-size:15px;font-weight:600;color:#dc2626;padding:16px 0 8px;display:flex;align-items:center;justify-content:center;gap:6px">
+    <footer id="footer" style="margin-top:14px;text-align:center;font-size:15px;font-weight:600;color:#dc2626;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid #fca5a5;border-radius:12px;background:#fff5f5">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       본 자료는 동아대학교 내부 공유자료이므로 무단으로 자료를 복사, 편집, 공유 할 수 없습니다.
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -733,8 +733,8 @@ function renderKPI(s) {
 
   // 스파크라인
   renderSparkline('sparkTotal',   yrs.map(y => { const b = DB.summary[y]?.exclude?.base; return b ? b.total : null; }),        '#FD5B42');
-  renderSparkline('sparkTenure',  yrs.map(y => { const b = DB.summary[y]?.exclude?.base; return b ? b.tenure_track : null; }), '#1365FE');
-  renderSparkline('sparkNonTenure', yrs.map(y => { const b = DB.summary[y]?.exclude?.base; return b ? b.non_tenure : null; }), '#1365FE');
+  renderSparkline('sparkTenure',  yrs.map(y => { const b = DB.summary[y]?.exclude?.base; return b ? b.tenure_track : null; }), '#111827');
+  renderSparkline('sparkNonTenure', yrs.map(y => { const b = DB.summary[y]?.exclude?.base; return b ? b.non_tenure : null; }), '#111827');
 }
 
 function renderSparkline(canvasId, data, color) {
