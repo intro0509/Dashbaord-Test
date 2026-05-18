@@ -1490,8 +1490,9 @@ function applyScale() {
   const navH = 84;
 
   // scaleRoot의 실제 좌우 여백 계산 → topnav padding에 동기화
+  // 카드 시작점 = (wrapperW - 1920*scale)/2 + 28*scale
   const scaledContentW = SCALE_BASE * scale;
-  const sidePad = (wrapperW - scaledContentW) / 2 + 28;
+  const sidePad = (wrapperW - scaledContentW) / 2 + 28 * scale;
   nav.style.padding = `0 ${sidePad}px`;
 
   // scaleRoot: topnav 아래에 배치
