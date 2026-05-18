@@ -31,7 +31,7 @@ html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1
 .nav-tab.disabled{color:#c5cad8;cursor:default}
 .nav-tab.disabled:hover{background:none;color:#c5cad8}
 .nav-badge{font-size:10px;background:#f1f3f8;color:#9ca3af;padding:1px 6px;border-radius:8px;font-weight:400}
-.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
+.nav-right{position:absolute;top:0;right:0;height:84px;display:flex;align-items:center;gap:10px;z-index:200}
 .nav-icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid #161616;background:#ffffff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#161616;transition:all .15s}
 .nav-icon-btn:hover{border-color:#161616;background:#161616;color:#ffffff}
 .nav-avatar{width:30px;height:30px;border-radius:50%;background:#DBE8FE;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#1365FE;cursor:pointer}
@@ -220,7 +220,8 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
     </button>
   </div>
   </div><!-- /nav-group -->
-  <div class="nav-right">
+</nav>
+<div class="nav-right">
     <button class="export-btn" onclick="showExportMenu(this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Export
@@ -234,7 +235,6 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       <span style="font-size:13px;font-weight:500;font-family:'Pretendard',sans-serif">Upload</span>
     </div>
   </div>
-</nav>
 
 <!-- 전임교원 현황 -->
 <div id="page-faculty" class="page active">
@@ -1507,6 +1507,9 @@ function applyScale() {
       const rightPad = wrapperRect.right - rootRect.right + 28 * scale;
       nav.style.paddingLeft = `${leftPad}px`;
       nav.style.paddingRight = `${rightPad}px`;
+      // nav-right를 paddingRight 기준 우측에 맞춤
+      const navRight = document.querySelector('.nav-right');
+      if (navRight) navRight.style.right = `${rightPad}px`;
     } catch(e) { console.warn('nav padding error:', e); }
 
     // wrapper 높이: scaleRoot 실제 높이 + navH + 하단 여백
