@@ -166,7 +166,7 @@ html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1
 .kpi-lbl-sm{font-size:11px;color:#9ca3af;font-weight:500;margin-bottom:2px}
 .kpi-num-sm{font-size:22px;font-weight:800;color:#111827;line-height:1.1;white-space:nowrap}
 .kpi-num-sm small{font-size:12px;font-weight:400;color:#9ca3af;margin-left:2px}
-.kpi-delta-sm{font-size:11px;margin-top:2px;white-space:nowrap;display:inline-flex;align-items:center;background:#e5e7eb;border-radius:6px;padding:2px 7px}
+.kpi-delta-sm{font-size:11px;margin-top:2px;white-space:nowrap}
 
 /* EXPORT BTN */
 .export-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:9px;font-size:13px;font-family:'Pretendard',sans-serif;cursor:pointer;border:1px solid #161616;background:#ffffff;color:#161616;font-weight:500;transition:all .15s}
@@ -1536,6 +1536,13 @@ function applyScale() {
 
   // appWrapper는 항상 hidden (scrollProxy가 대신 스크롤바 표시)
   wrapper.style.overflowX = 'hidden';
+
+  // 스케일 변경 후 레이아웃 완료 시점에 높이 재조정
+  requestAnimationFrame(() => {
+    adjustCollegeHeight();
+    adjustHeatmapHeight();
+    adjustRetireHeight();
+  });
 }
 
 applyScale();
@@ -1618,7 +1625,8 @@ function adjustCollegeHeight() {
   // leftGrid.offsetHeight = Row1 + gap + Row2 + gap + Row3 (gap 2개!)
   const row3H = row3Grid.offsetHeight;
   const leftH = leftGrid.offsetHeight;
-  const topH = leftH - 2 * gap - row3H; // Row1 + gap + Row2 (gap 2개 제거)
+  // topH = Row1 + gap + Row2 = leftH에서 gap 2개와 Row3 제거
+  const topH = leftH - (2 * gap) - row3H;
   const cardTenure = document.getElementById('card-tenure');
   const tenureH = cardTenure ? cardTenure.offsetHeight : 0;
   // card-college = (Row1 + gap + Row2) + gap + card-tenure
