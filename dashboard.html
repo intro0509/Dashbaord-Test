@@ -8,11 +8,14 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1;color:#111827;font-size:14px;margin:0;padding:0;overflow-x:auto}
+html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1;color:#111827;font-size:14px;margin:0;padding:0;overflow-x:hidden}
+#scrollProxy{position:fixed;bottom:0;left:16px;right:calc(16px + var(--sb-width, 0px));height:0;overflow-x:auto;overflow-y:hidden;z-index:9999}
+#scrollProxy.active{height:14px}
+#scrollProxyInner{height:1px;pointer-events:none}
 
 
 /* APP WRAPPER */
-#appWrapper{background:#F6F6F6;border-radius:20px;margin:16px;overflow:hidden;min-width:1200px;box-shadow:0 4px 24px rgba(0,0,0,0.10);position:relative}
+#appWrapper{background:#F6F6F6;border-radius:20px;margin:16px;overflow-x:auto;overflow-y:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);position:relative}
 
 /* SCALE ROOT */
 #scaleRoot{width:1920px;transform-origin:top center;position:relative}
@@ -201,7 +204,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
 </style>
 </head>
 <body>
-<div id="appWrapper" style="background:#F6F6F6;border-radius:20px;margin:16px;overflow:hidden;min-width:1200px;box-shadow:0 4px 24px rgba(0,0,0,0.10);position:relative">
+<div id="appWrapper" style="background:#F6F6F6;border-radius:20px;margin:16px;overflow-x:auto;overflow-y:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);position:relative">
 
 <nav class="topnav">
   <div class="nav-group">
@@ -1520,8 +1523,32 @@ function applyScale() {
 }
 
 applyScale();
-window.addEventListener('resize', () => { applyScale(); adjustCollegeHeight(); adjustHeatmapHeight(); });
-setTimeout(() => { applyScale(); adjustCollegeHeight(); adjustHeatmapHeight(); }, 800);
+window.addEventListener('resize', () => { applyScale(); adjustCollegeHeight(); adjustHeatmapHeight(); initScrollProxy(); });
+setTimeout(() => { applyScale(); adjustCollegeHeight(); adjustHeatmapHeight(); initScrollProxy(); }, 800);
+
+function initScrollProxy() {
+  const wrapper = document.getElementById('appWrapper');
+  const proxy = document.getElementById('scrollProxy');
+  const inner = document.getElementById('scrollProxyInner');
+  if (!wrapper || !proxy || !inner) return;
+
+  // 세로 스크롤바 너비 계산
+  const sbWidth = window.innerWidth - document.documentElement.clientWidth;
+  document.documentElement.style.setProperty('--sb-width', sbWidth + 'px');
+
+  // 가로 스크롤이 필요한 경우만 표시
+  if (wrapper.scrollWidth > wrapper.clientWidth) {
+    inner.style.width = wrapper.scrollWidth + 'px';
+    proxy.classList.add('active');
+  } else {
+    proxy.classList.remove('active');
+    return;
+  }
+
+  // 스크롤 동기화 (중복 등록 방지)
+  proxy.onscroll = () => { wrapper.scrollLeft = proxy.scrollLeft; };
+  wrapper.onscroll = () => { proxy.scrollLeft = wrapper.scrollLeft; };
+}
 
 
 // 히트맵 카드 높이를 Row3+gap+Row4 합계로 동적 설정
@@ -1547,5 +1574,6 @@ function adjustCollegeHeight() {
 }
 </script>
 </div><!-- /appWrapper -->
+<div id="scrollProxy"><div id="scrollProxyInner"></div></div>
 </body>
 </html>
