@@ -367,10 +367,10 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
     </div>
 
     <!-- 메인 레이아웃: 좌측(2열) + 우측(1열) 독립 -->
-    <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:start">
+    <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:start;overflow:hidden">
 
       <!-- 좌측: 2열 그리드 -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;overflow:hidden">
 
         <!-- Row1 Col1: 트랙별 -->
         <div class="card" id="card-track">
@@ -436,7 +436,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       </div>
 
       <!-- 우측: 단과대학별 + 정년퇴직 예정자 -->
-      <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;flex-direction:column;gap:14px;overflow:hidden">
         <div class="card" id="card-college">
           <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#6366f1"></div>단과대학별 현황</div></div>
           <div class="college-scroll" id="collegeTable" style="max-height:500px"></div>
@@ -1538,13 +1538,6 @@ function applyScale() {
 
   // appWrapper는 항상 hidden (scrollProxy가 대신 스크롤바 표시)
   wrapper.style.overflowX = 'hidden';
-
-  // scale 변경 후 높이 재조정 (겹침 방지)
-  requestAnimationFrame(() => {
-    adjustCollegeHeight();
-    adjustHeatmapHeight();
-    adjustRetireHeight();
-  });
 }
 
 applyScale();
@@ -1601,11 +1594,12 @@ function initScrollProxy() {
 // 히트맵 카드 높이를 Row3+gap+Row4 합계로 동적 설정
 function adjustHeatmapHeight() {
   const cardTenure = document.getElementById('card-tenure');
+  const cardAge = document.getElementById('card-age');
   const cardHeatmap = document.getElementById('card-heatmap');
-  if (!cardTenure || !cardHeatmap) return;
+  if (!cardTenure || !cardAge || !cardHeatmap) return;
   const gap = 14;
-  // 히트맵 높이 = 재직기간별 높이에 맞춤
-  cardHeatmap.style.height = cardTenure.offsetHeight + 'px';
+  // 히트맵 높이 = 재직기간별 + gap + 연령별 전체 높이
+  cardHeatmap.style.height = (cardTenure.offsetHeight + gap + cardAge.offsetHeight) + 'px';
 }
 
 function adjustRetireHeight() {
