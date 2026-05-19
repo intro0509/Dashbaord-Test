@@ -422,7 +422,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
                 <div id="tenureHistoLegend" style="flex:1"></div>
               </div>
             </div>
-            <div class="card">
+            <div class="card" id="card-age">
               <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#f59e0b"></div>연령별 분포</div></div>
               <div style="display:flex;align-items:center;gap:8px">
                 <div style="position:relative;height:160px;flex:0 0 auto;width:min(160px,45%)"><canvas id="ageHisto"></canvas></div>
@@ -770,6 +770,7 @@ async function renderAll() {
     requestAnimationFrame(() => {
       adjustCollegeHeight();
       adjustHeatmapHeight();
+      adjustRetireHeight();
       initScrollProxy();
     });
   }, 150);
@@ -1537,6 +1538,13 @@ function applyScale() {
 
   // appWrapper는 항상 hidden (scrollProxy가 대신 스크롤바 표시)
   wrapper.style.overflowX = 'hidden';
+
+  // scale 변경 후 높이 재조정 (겹침 방지)
+  requestAnimationFrame(() => {
+    adjustCollegeHeight();
+    adjustHeatmapHeight();
+    adjustRetireHeight();
+  });
 }
 
 applyScale();
@@ -1550,6 +1558,7 @@ window.addEventListener('resize', () => {
     requestAnimationFrame(() => {
       adjustCollegeHeight();
       adjustHeatmapHeight();
+      adjustRetireHeight();
       initScrollProxy();
     });
   }, 100);
@@ -1559,6 +1568,7 @@ setTimeout(() => {
   requestAnimationFrame(() => {
     adjustCollegeHeight();
     adjustHeatmapHeight();
+    adjustRetireHeight();
     initScrollProxy();
   });
 }, 200);
@@ -1591,20 +1601,29 @@ function initScrollProxy() {
 // 히트맵 카드 높이를 Row3+gap+Row4 합계로 동적 설정
 function adjustHeatmapHeight() {
   const cardTenure = document.getElementById('card-tenure');
-  const cardRetire = document.getElementById('card-retire');
   const cardHeatmap = document.getElementById('card-heatmap');
-  if (!cardTenure || !cardRetire || !cardHeatmap) return;
+  if (!cardTenure || !cardHeatmap) return;
   const gap = 14;
-  const totalH = cardTenure.offsetHeight + gap + cardRetire.offsetHeight;
-  cardHeatmap.style.height = totalH + 'px';
+  // 히트맵 높이 = 재직기간별 높이에 맞춤
+  cardHeatmap.style.height = cardTenure.offsetHeight + 'px';
+}
+
+function adjustRetireHeight() {
+  // 정년퇴직 예정자 높이 = 연령별 분포와 같은 높이로 맞춤
+  const cardAge = document.getElementById('card-age');
+  const cardRetire = document.getElementById('card-retire');
+  if (!cardAge || !cardRetire) return;
+  cardRetire.style.height = cardAge.offsetHeight + 'px';
 }
 function adjustCollegeHeight() {
   const cardTrack = document.getElementById('card-track');
   const cardRank = document.getElementById('card-rank');
+  const cardTenure = document.getElementById('card-tenure');
   const cardCollege = document.getElementById('card-college');
-  if (!cardTrack || !cardRank || !cardCollege) return;
+  if (!cardTrack || !cardRank || !cardTenure || !cardCollege) return;
   const gap = 14;
-  const totalH = cardTrack.offsetHeight + gap + cardRank.offsetHeight;
+  // 단과대학별 높이 = 트랙별 + 직급별 + 재직기간별 + gap*2
+  const totalH = cardTrack.offsetHeight + gap + cardRank.offsetHeight + gap + cardTenure.offsetHeight;
   cardCollege.style.height = totalH + 'px';
   const scroll = cardCollege.querySelector('.college-scroll');
   if (scroll) scroll.style.maxHeight = (totalH - 60) + 'px';
