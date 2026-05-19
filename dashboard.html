@@ -1476,7 +1476,7 @@ loadData();
 
 // 반응형 스케일: nav + scaleRoot 동시 적용
 const SCALE_BASE = 1920;
-const SCALE_MIN  = 1500;
+const SCALE_MIN  = 1632;
 const SCALE_MAX  = 1920;
 
 function applyScale() {
@@ -1511,9 +1511,16 @@ function applyScale() {
   requestAnimationFrame(() => {
     try {
       // topnav: scaleRoot와 동일한 scale/origin 적용
-      nav.style.transform = `scale(${scale})`;
-      nav.style.transformOrigin = 'top center';
-      nav.style.marginBottom = `-${Math.round(84 * (1 - scale))}px`;
+      if (scale >= 1) {
+        nav.style.transform = 'none';
+        nav.style.marginBottom = '0px';
+        nav.style.width = wrapperW + 'px';
+      } else {
+        nav.style.transform = `scale(${scale})`;
+        nav.style.transformOrigin = 'top left';
+        nav.style.marginBottom = `-${Math.round(84 * (1 - scale))}px`;
+        nav.style.width = SCALE_BASE + 'px';
+      }
     } catch(e) { console.warn('nav padding error:', e); }
 
     // wrapper 높이: scaleRoot 실제 높이 + navH + 하단 여백
