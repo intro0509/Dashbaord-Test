@@ -1575,22 +1575,26 @@ function initScrollProxy() {
 
 // 히트맵 카드 높이를 Row3+gap+Row4 합계로 동적 설정
 function adjustHeatmapHeight() {
-  const cardTenure = document.getElementById('card-tenure');
-  const cardRetire = document.getElementById('card-retire');
+  // ★ offsetHeight는 transform:scale() 미반영 → CSS auto로 처리
   const cardHeatmap = document.getElementById('card-heatmap');
-  if (!cardTenure || !cardRetire || !cardHeatmap) return;
-  const gap = 14;
-  const totalH = cardTenure.offsetHeight + gap + cardRetire.offsetHeight;
-  cardHeatmap.style.height = totalH + 'px';
+  if (!cardHeatmap) return;
+  cardHeatmap.style.height = '';
 }
 function adjustCollegeHeight() {
-  // CSS flex:1로 높이 자동 조정 (JS 강제설정 제거 → 겹침 방지)
+  // ★ offsetHeight는 transform:scale() 미반영 → 사용 금지
+  // CSS flex:1 + align-self:stretch로 높이 자동 조정
+  // scroll 영역만 card 높이에 맞게 조정
   const cardCollege = document.getElementById('card-college');
   if (!cardCollege) return;
+  // JS 강제 height 제거 (이전에 설정됐을 경우 초기화)
+  cardCollege.style.height = '';
   const scroll = cardCollege.querySelector('.college-scroll');
   if (scroll) {
-    const availH = cardCollege.clientHeight - 60;
-    if (availH > 0) scroll.style.maxHeight = availH + 'px';
+    // requestAnimationFrame으로 CSS 레이아웃 완료 후 측정
+    requestAnimationFrame(() => {
+      const availH = cardCollege.clientHeight - 60;
+      if (availH > 0) scroll.style.maxHeight = availH + 'px';
+    });
   }
 }
 </script>
