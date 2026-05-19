@@ -10,7 +10,8 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1;color:#111827;font-size:14px;margin:0;padding:0}
 /* 가로 스크롤바 화면 하단 고정 */
-#appWrapper{scrollbar-width:thin}
+#appWrapper{scrollbar-width:none}
+#appWrapper::-webkit-scrollbar{display:none}
 #scrollProxy{position:fixed;bottom:0;left:0;right:0;height:12px;overflow-x:auto;overflow-y:hidden;z-index:9999;background:transparent}
 #scrollProxyInner{height:1px}
 
