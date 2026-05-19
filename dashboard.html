@@ -17,7 +17,7 @@ html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1
 #scaleRoot{width:1920px;transform-origin:top left;position:relative}
 
 /* TOPNAV */
-.topnav{z-index:100;background:transparent;height:84px;display:flex;align-items:center;padding:0 28px;gap:0;width:100%;border-radius:0;position:relative}
+.topnav{z-index:100;background:transparent;height:84px;display:flex;align-items:center;padding:0 28px;gap:0;width:1920px;transform-origin:top left;border-radius:0;position:relative}
 .nav-group{display:flex;align-items:center;background:#ffffff;border-radius:14px;padding:0 8px;height:52px;gap:0}
 .logo{display:flex;align-items:center;gap:10px;margin-right:16px;text-decoration:none;flex-shrink:0}
 .logo-box{width:30px;height:30px;background:#1365FE;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1501,9 +1501,11 @@ function applyScale() {
 
   requestAnimationFrame(() => {
     try {
-      // nav padding: 고정 28px (모바일/PC 모두 좌측 기준)
-      nav.style.paddingLeft = '28px';
-      nav.style.paddingRight = '28px';
+      // topnav: scaleRoot와 동일한 scale 적용
+      nav.style.transform = `scale(${scale})`;
+      nav.style.transformOrigin = 'top left';
+      // topnav 높이 보정
+      nav.style.marginBottom = `-${84 - 84 * scale}px`;
     } catch(e) { console.warn('nav padding error:', e); }
 
     // wrapper 높이: scaleRoot 실제 높이 + navH + 하단 여백
