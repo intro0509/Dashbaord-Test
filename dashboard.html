@@ -1493,22 +1493,12 @@ function applyScale() {
   // topnav: scale 없이 appWrapper 너비에 맞게 자연 배치
   const navH = 84;
 
-  // 화면 너비에 따라 PC/모바일 분기
-  if (wrapperW >= SCALE_MIN) {
-    // PC: top center 기준, overflow:hidden, 좌우 여백 유지
-    root.style.transform = `scale(${scale})`;
-    root.style.width = SCALE_BASE + 'px';
-    root.style.transformOrigin = 'top center';
-    wrapper.style.overflowX = 'hidden';
-    wrapper.style.overflowY = 'hidden';
-  } else {
-    // 모바일: top left 기준, overflow-x:auto, 좌우 스크롤 허용
-    root.style.transform = `scale(${scale})`;
-    root.style.width = SCALE_BASE + 'px';
-    root.style.transformOrigin = 'top left';
-    wrapper.style.overflowX = 'auto';
-    wrapper.style.overflowY = 'hidden';
-  }
+  // 항상 top center 기준으로 scale
+  root.style.transform = `scale(${scale})`;
+  root.style.width = SCALE_BASE + 'px';
+  root.style.transformOrigin = 'top center';
+  wrapper.style.overflowX = 'hidden';
+  wrapper.style.overflowY = 'hidden';
 
   requestAnimationFrame(() => {
     try {
