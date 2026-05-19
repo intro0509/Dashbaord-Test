@@ -367,10 +367,10 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
     </div>
 
     <!-- 메인 레이아웃: 좌측(2열) + 우측(1열) 독립 -->
-    <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:stretch">
+    <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:start">
 
       <!-- 좌측: 2열 그리드 -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;align-content:start">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
 
         <!-- Row1 Col1: 트랙별 -->
         <div class="card" id="card-track">
@@ -436,8 +436,8 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
       </div>
 
       <!-- 우측: 단과대학별 + 정년퇴직 예정자 -->
-      <div style="display:flex;flex-direction:column;gap:14px;align-self:stretch">
-        <div class="card" id="card-college" style="flex:1;min-height:0">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card" id="card-college">
           <div class="card-hd"><div class="card-title"><div class="cdot" style="background:#6366f1"></div>단과대학별 현황</div></div>
           <div class="college-scroll" id="collegeTable" style="max-height:500px"></div>
         </div>
@@ -763,10 +763,16 @@ async function renderAll() {
   const filterTotalEl = document.getElementById('filterTotal');
   if (filterTotalEl) filterTotalEl.textContent = s.total.toLocaleString()+'명';
   animateBars();
-  setTimeout(adjustCollegeHeight, 150);
-  setTimeout(adjustHeatmapHeight, 150);
-  // 차트 렌더링 완료 후 스케일/스크롤바 재측정 (scrollWidth 정확히 반영)
-  setTimeout(() => { applyScale(); initScrollProxy(); }, 200);
+  // applyScale 먼저 → 완료 후 adjust 함수들 실행 (순서 보장)
+  setTimeout(() => {
+    applyScale();
+    // applyScale 후 브라우저 레이아웃 재계산 완료 시점에 높이 조정
+    requestAnimationFrame(() => {
+      adjustCollegeHeight();
+      adjustHeatmapHeight();
+      initScrollProxy();
+    });
+  }, 150);
 
 }
 
@@ -1537,16 +1543,25 @@ applyScale();
 // debounce: resize 완료 후 실행 (겹침 방지)
 let resizeTimer = null;
 window.addEventListener('resize', () => {
-  applyScale(); // 즉시 scale 적용 (화면 크기 변화에 즉각 반응)
+  applyScale();
   if (resizeTimer) clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    // 브라우저 레이아웃 재계산 완료 후 높이 조정
+    // applyScale 후 브라우저 레이아웃 재계산 완료 시점에 높이 조정
+    requestAnimationFrame(() => {
+      adjustCollegeHeight();
+      adjustHeatmapHeight();
+      initScrollProxy();
+    });
+  }, 100);
+});
+setTimeout(() => {
+  applyScale();
+  requestAnimationFrame(() => {
     adjustCollegeHeight();
     adjustHeatmapHeight();
     initScrollProxy();
-  }, 100);
-});
-setTimeout(() => { applyScale(); adjustCollegeHeight(); adjustHeatmapHeight(); initScrollProxy(); }, 200);
+  });
+}, 200);
 
 function initScrollProxy() {
   const wrapper = document.getElementById('appWrapper');
@@ -1575,27 +1590,24 @@ function initScrollProxy() {
 
 // 히트맵 카드 높이를 Row3+gap+Row4 합계로 동적 설정
 function adjustHeatmapHeight() {
-  // ★ offsetHeight는 transform:scale() 미반영 → CSS auto로 처리
+  const cardTenure = document.getElementById('card-tenure');
+  const cardRetire = document.getElementById('card-retire');
   const cardHeatmap = document.getElementById('card-heatmap');
-  if (!cardHeatmap) return;
-  cardHeatmap.style.height = '';
+  if (!cardTenure || !cardRetire || !cardHeatmap) return;
+  const gap = 14;
+  const totalH = cardTenure.offsetHeight + gap + cardRetire.offsetHeight;
+  cardHeatmap.style.height = totalH + 'px';
 }
 function adjustCollegeHeight() {
-  // ★ offsetHeight는 transform:scale() 미반영 → 사용 금지
-  // CSS flex:1 + align-self:stretch로 높이 자동 조정
-  // scroll 영역만 card 높이에 맞게 조정
+  const cardTrack = document.getElementById('card-track');
+  const cardRank = document.getElementById('card-rank');
   const cardCollege = document.getElementById('card-college');
-  if (!cardCollege) return;
-  // JS 강제 height 제거 (이전에 설정됐을 경우 초기화)
-  cardCollege.style.height = '';
+  if (!cardTrack || !cardRank || !cardCollege) return;
+  const gap = 14;
+  const totalH = cardTrack.offsetHeight + gap + cardRank.offsetHeight;
+  cardCollege.style.height = totalH + 'px';
   const scroll = cardCollege.querySelector('.college-scroll');
-  if (scroll) {
-    // requestAnimationFrame으로 CSS 레이아웃 완료 후 측정
-    requestAnimationFrame(() => {
-      const availH = cardCollege.clientHeight - 60;
-      if (availH > 0) scroll.style.maxHeight = availH + 'px';
-    });
-  }
+  if (scroll) scroll.style.maxHeight = (totalH - 60) + 'px';
 }
 </script>
 </div><!-- /appWrapper -->
