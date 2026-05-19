@@ -69,7 +69,7 @@ html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1
 .filter-bar{background:transparent;border:1px solid #e5eaf5;border-radius:12px;padding:10px 16px;margin-bottom:18px;display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto}
 .filter-section{display:flex;align-items:center;gap:6px}
 .filter-label{font-size:11px;color:#6b7280;font-weight:600;white-space:nowrap;background:#f3f4f6;border:1px solid #e5eaf5;border-radius:6px;padding:3px 8px}
-.fchip{padding:4px 11px;border-radius:20px;font-size:11px;border:1px solid #161616;background:#ffffff;color:#161616;cursor:pointer;transition:all .15s;font-family:'Pretendard',sans-serif;white-space:nowrap}
+.fchip{padding:6px 14px;border-radius:8px;font-size:13px;border:1px solid #161616;background:#ffffff;color:#161616;cursor:pointer;transition:all .15s;font-family:'Pretendard',sans-serif;white-space:nowrap}
 .fchip:hover{border-color:#161616;background:#161616;color:#ffffff}
 .fchip.on{background:#161616;border-color:#161616;color:#ffffff;font-weight:600}
 .fsep{color:#e5eaf5;font-size:16px;margin:0 2px}
@@ -88,7 +88,7 @@ html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1
 .kpi-num{font-size:28px;font-weight:800;color:#111827;line-height:1}
 .kpi-num small{font-size:13px;font-weight:400;color:#9ca3af;margin-left:2px}
 .kpi-sub{font-size:11px;color:#9ca3af;margin-top:5px}
-.kpi-delta{font-size:11px;margin-top:3px}
+.kpi-delta{font-size:11px;margin-top:3px;background:#e5e7eb;border-radius:6px;padding:2px 7px}
 .up{color:#1365FE}.dn{color:#FF0000}
 
 /* GRID */
@@ -318,7 +318,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
           <div class="card-title"><div class="cdot" style="background:#0ea5e9"></div>전임교원 확보율 추이</div>
           <div style="display:flex;align-items:center;gap:16px;font-size:12px;color:#6b7280">
             <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:24px;height:2px;background:#1365FE;border-radius:2px"></span>의학계열 제외</span>
-            <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:24px;height:2px;background:#93c5fd;border-radius:2px;border-top:2px dashed #93c5fd;height:0"></span>의학계열 포함</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:24px;height:0;border-top:2px dashed #d1d5db"></span>의학계열 포함</span>
           </div>
         </div>
         <div style="position:relative;height:220px"><canvas id="rateChart"></canvas></div>
@@ -370,7 +370,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
     <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:start">
 
       <!-- 좌측: 2열 그리드 -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+      <div id="left-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
 
         <!-- Row1 Col1: 트랙별 -->
         <div class="card" id="card-track">
@@ -405,7 +405,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
         </div>
 
         <!-- Row3: 2열 서브그리드 (COL1:히트맵 / COL2:재직기간+연령) -->
-        <div style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch">
+        <div id="row3-grid" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch">
 
           <!-- COL1: 연령×재직기간 (높이 독립) -->
           <div class="card" id="card-heatmap" style="overflow-y:auto;overflow-x:hidden">
@@ -450,11 +450,6 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
     </div>
 
     </div><!-- /content-wrap -->
-    <footer id="footer" style="margin-top:14px;margin-bottom:0;padding-bottom:16px;text-align:center;font-size:15px;font-weight:600;color:#dc2626;padding:14px 20px 16px;display:flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid #fca5a5;border-radius:12px;background:#fff5f5">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      본 자료는 동아대학교 내부 공유자료이므로 무단으로 자료를 복사, 편집, 공유 할 수 없습니다.
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    </footer>
   </div>
 </div><!-- /dash-wrap -->
 </div><!-- /scaleRoot -->
@@ -844,7 +839,7 @@ function renderSparkline(canvasId, data, color) {
         pointRadius: 0,
         pointHoverRadius: 0,
         fill: true,
-        tension: 0.3,
+        tension: 0,
         spanGaps: true
       }]
     },
@@ -1217,8 +1212,8 @@ function renderStkBar(cid,lid,allLbls,allVals,allClrs,s,filterType){
 }
 
 // RADIAL BAR CHART (재직기간/연령) - 12시 방향 시작, 레이블 좌측
-const TENURE_LBL={'5년 미만':'▼ 5년','5년-15년':'▼ 15년','15년-25년':'▼ 25년','25년-35년':'▼ 35년','35년 초과':'▲ 35년'};
-const AGE_LBL2={'30세 미만':'▼ 30세','30세-40세':'▼ 40세','40세-50세':'▼ 50세','50세-60세':'▼ 60세','60세 초과':'▲ 60세'};
+const TENURE_LBL={'5년 미만':'▽ 5년','5년-15년':'▽ 15년','15년-25년':'▽ 25년','25년-35년':'▽ 35년','35년 초과':'▲ 35년'};
+const AGE_LBL2={'30세 미만':'▽ 30세','30세-40세':'▽ 40세','40세-50세':'▽ 50세','50세-60세':'▽ 60세','60세 초과':'▲ 60세'};
 function renderHisto(cid, dataObj, colors, total, legendId) {
   const rawLabels=Object.keys(dataObj), values=Object.values(dataObj);
   const labels=rawLabels.map(l=>TENURE_LBL[l]||AGE_LBL2[l]||l);
@@ -1600,14 +1595,11 @@ function initScrollProxy() {
 
 // 히트맵 카드 높이를 Row3+gap+Row4 합계로 동적 설정
 function adjustHeatmapHeight() {
-  const cardTenure = document.getElementById('card-tenure');
-  const cardAge = document.getElementById('card-age');
+  const row3Grid = document.getElementById('row3-grid');
   const cardHeatmap = document.getElementById('card-heatmap');
-  if (!cardTenure || !cardAge || !cardHeatmap) return;
-  const gap = 14;
-  // 히트맵 높이 = 재직기간별 + gap + 연령별
-  const totalH = cardTenure.offsetHeight + gap + cardAge.offsetHeight;
-  cardHeatmap.style.height = totalH + 'px';
+  if (!row3Grid || !cardHeatmap) return;
+  // 히트맵 높이 = Row3 전체 높이 (재직기간별+연령별 합과 동일)
+  cardHeatmap.style.height = row3Grid.offsetHeight + 'px';
 }
 
 function adjustRetireHeight() {
@@ -1618,14 +1610,21 @@ function adjustRetireHeight() {
   cardRetire.style.height = cardAge.offsetHeight + 'px';
 }
 function adjustCollegeHeight() {
-  const cardTrack = document.getElementById('card-track');
-  const cardRank = document.getElementById('card-rank');
-  const cardTenure = document.getElementById('card-tenure');
+  const leftGrid = document.getElementById('left-grid');
+  const row3Grid = document.getElementById('row3-grid');
   const cardCollege = document.getElementById('card-college');
-  if (!cardTrack || !cardRank || !cardTenure || !cardCollege) return;
+  if (!leftGrid || !row3Grid || !cardCollege) return;
   const gap = 14;
-  // 단과대학별 높이 = 트랙별 + 직급별 + 재직기간별 + gap*2
-  const totalH = cardTrack.offsetHeight + gap + cardRank.offsetHeight + gap + cardTenure.offsetHeight;
+  // 실제 높이: 좌측 그리드 전체 - Row3 - gap
+  // leftGrid.offsetHeight = Row1 + gap + Row2 + gap + Row3
+  // Row3 = row3Grid.offsetHeight
+  const row3H = row3Grid.offsetHeight;
+  const leftH = leftGrid.offsetHeight;
+  const topH = leftH - gap - row3H; // Row1 + gap + Row2
+  const cardTenure = document.getElementById('card-tenure');
+  const tenureH = cardTenure ? cardTenure.offsetHeight : 0;
+  // card-college = (Row1 + gap + Row2) + gap + card-tenure
+  const totalH = topH + gap + tenureH;
   cardCollege.style.height = totalH + 'px';
   const scroll = cardCollege.querySelector('.college-scroll');
   if (scroll) scroll.style.maxHeight = (totalH - 60) + 'px';
