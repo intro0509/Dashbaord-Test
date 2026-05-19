@@ -17,7 +17,7 @@ html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1
 #scaleRoot{width:1920px;transform-origin:top left;position:relative}
 
 /* TOPNAV */
-.topnav{z-index:100;background:transparent;height:84px;display:flex;align-items:center;padding:0 28px;gap:0;width:1920px;transform-origin:top left;border-radius:0;position:relative}
+.topnav{z-index:100;background:transparent;height:84px;display:flex;align-items:center;padding:0 28px;gap:0;width:100%;border-radius:0;position:relative}
 .nav-group{display:flex;align-items:center;background:#ffffff;border-radius:14px;padding:0 8px;height:52px;gap:0}
 .logo{display:flex;align-items:center;gap:10px;margin-right:16px;text-decoration:none;flex-shrink:0}
 .logo-box{width:30px;height:30px;background:#1365FE;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1480,7 +1480,7 @@ function applyScale() {
   if (!root || !nav || !wrapper) return;
 
   // wrapper 실제 너비 = 윈도우 - 마진(16px*2)
-  const wrapperW = window.innerWidth - 32;
+  const wrapperW = wrapper.clientWidth;
   let scale;
   if (wrapperW < SCALE_MIN) {
     scale = SCALE_MIN / SCALE_BASE;
@@ -1501,11 +1501,15 @@ function applyScale() {
 
   requestAnimationFrame(() => {
     try {
-      // topnav: scaleRoot와 동일한 scale 적용
-      nav.style.transform = `scale(${scale})`;
-      nav.style.transformOrigin = 'top left';
-      // topnav 높이 보정
-      nav.style.marginBottom = `-${84 - 84 * scale}px`;
+      // topnav padding: scaleRoot top left 기준으로 정렬
+      const scaledW = 1920 * scale;
+      const leftPad = 28 * scale;
+      // 우측 여백: wrapper 너비 - scaleRoot 실제 너비 + 28*scale
+      // top left 기준이므로 scaleRoot는 항상 왼쪽에 붙음
+      // 따라서 우측 여백 = wrapper.clientWidth - scaledW + 28*scale
+      const rightPad = Math.max(28 * scale, wrapper.clientWidth - scaledW + 28 * scale);
+      nav.style.paddingLeft = `${leftPad}px`;
+      nav.style.paddingRight = `${rightPad}px`;
     } catch(e) { console.warn('nav padding error:', e); }
 
     // wrapper 높이: scaleRoot 실제 높이 + navH + 하단 여백
