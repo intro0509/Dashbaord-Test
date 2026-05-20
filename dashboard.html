@@ -164,9 +164,9 @@ html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1
 .kpi-icon-box svg{width:22px;height:22px}
 .kpi-info{flex:1;min-width:0}
 .kpi-lbl-sm{font-size:11px;color:#9ca3af;font-weight:500;margin-bottom:2px}
-.kpi-num-sm{font-size:20px;font-weight:800;color:#111827;line-height:1.1;white-space:nowrap}
+.kpi-num-sm{font-size:18px;font-weight:800;color:#111827;line-height:1.1;white-space:nowrap}
 .kpi-num-sm small{font-size:12px;font-weight:400;color:#9ca3af;margin-left:2px}
-.kpi-delta-sm{font-size:11px;margin-top:2px;white-space:nowrap;display:inline-flex;align-items:center;background:#e5e7eb;border-radius:6px;padding:2px 8px;flex-shrink:0}
+.kpi-delta-sm{font-size:11px;white-space:nowrap;display:inline-flex;align-items:center;background:#e5e7eb;border-radius:6px;padding:2px 8px;flex-shrink:0}
 
 /* EXPORT BTN */
 .export-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:9px;font-size:13px;font-family:'Pretendard',sans-serif;cursor:pointer;border:1px solid #161616;background:#ffffff;color:#161616;font-weight:500;transition:all .15s}
@@ -269,7 +269,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
             </div>
             <div class="kpi-info">
               <div class="kpi-lbl-sm">전임교원</div>
-              <div style="display:flex;align-items:baseline;gap:6px">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
                 <div class="kpi-num-sm" id="kpiTotal">-<small>명</small></div>
                 <div class="kpi-delta-sm" id="kpiTotalDelta"></div>
               </div>
@@ -285,7 +285,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
             </div>
             <div class="kpi-info">
               <div class="kpi-lbl-sm">정년트랙</div>
-              <div style="display:flex;align-items:baseline;gap:6px">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
                 <div class="kpi-num-sm" id="kpiTenure">-<small>명</small></div>
                 <div class="kpi-delta-sm" id="kpiTenureDelta"></div>
               </div>
@@ -303,7 +303,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
             </div>
             <div class="kpi-info">
               <div class="kpi-lbl-sm">비정년트랙</div>
-              <div style="display:flex;align-items:baseline;gap:6px">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
                 <div class="kpi-num-sm" id="kpiNonTenure">-<small>명</small></div>
                 <div class="kpi-delta-sm" id="kpiNonTenureDelta"></div>
               </div>
