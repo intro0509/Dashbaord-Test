@@ -22,7 +22,7 @@ html,body{min-height:100%;font-family:'Pretendard',sans-serif;background:#E1E1E1
 
 /* TOPNAV */
 .topnav{z-index:100;background:transparent;height:84px;display:flex;align-items:center;padding:0 28px;gap:0;width:100%;transform-origin:top left;border-radius:0;position:relative}
-.nav-group{display:flex;align-items:center;background:#ffffff;border-radius:14px;padding:0 8px;height:52px;gap:0;flex:1}
+.nav-group{display:flex;align-items:center;background:#ffffff;border-radius:14px;padding:0 8px;height:52px;gap:0;flex:0 0 auto}
 .logo{display:flex;align-items:center;gap:10px;margin-right:16px;text-decoration:none;flex-shrink:0}
 .logo-box{width:30px;height:30px;background:#1365FE;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .logo-box svg{width:16px;height:16px}
@@ -274,7 +274,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
                 <div class="kpi-delta-sm" id="kpiTotalDelta"></div>
               </div>
             </div>
-            <div style="flex-shrink:0;width:80px;height:40px"><canvas id="sparkTotal"></canvas></div>
+            <div style="flex:1;min-width:60px;height:40px"><canvas id="sparkTotal"></canvas></div>
           </div>
           <div class="kpi-card-sm">
             <div class="kpi-icon-box">
@@ -290,7 +290,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
                 <div class="kpi-delta-sm" id="kpiTenureDelta"></div>
               </div>
             </div>
-            <div style="flex-shrink:0;width:80px;height:40px"><canvas id="sparkTenure"></canvas></div>
+            <div style="flex:1;min-width:60px;height:40px"><canvas id="sparkTenure"></canvas></div>
           </div>
           <div class="kpi-card-sm">
             <div class="kpi-icon-box">
@@ -308,7 +308,7 @@ footer{text-align:center;font-size:11px;color:#9ca3af;padding:16px 0 8px}
                 <div class="kpi-delta-sm" id="kpiNonTenureDelta"></div>
               </div>
             </div>
-            <div style="flex-shrink:0;width:80px;height:40px"><canvas id="sparkNonTenure"></canvas></div>
+            <div style="flex:1;min-width:60px;height:40px"><canvas id="sparkNonTenure"></canvas></div>
           </div>
         </div>
       </div>
